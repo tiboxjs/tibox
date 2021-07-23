@@ -1,0 +1,12 @@
+{
+  "name": "tibox-monorepo",
+  "author": "张博 <zbjumper@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "debug": "cd packages/tibox && yarn dev"
+  }
+}
