@@ -1,8 +1,12 @@
+export * from "./config";
+
 // import _ from "lodash";
-import vfs from "vinyl-fs";
-import map from "map-stream";
-import * as File from "vinyl";
-import { yellow, green } from "chalk";
+import { src, dest } from "gulp";
+import replace from "gulp-replace";
+// import vfs from "vinyl-fs";
+// import map from "map-stream";
+// import * as File from "vinyl";
+import { green } from "chalk";
 
 // import { program } from "commander";
 // import create from "./order/create";
@@ -25,11 +29,18 @@ import { yellow, green } from "chalk";
 
 // program.parse(process.argv);
 
-vfs.src(["src/*.js"]).pipe(
-  map((file: File, cb: Function) => {
-    console.log(yellow(JSON.stringify(file)));
-    cb(null, file);
-  })
-).dest('dist/');
+src(["src/project.config.json"])
+  .pipe(replace("$APPID$", "abc"))
+  .pipe(dest("dist"));
+
+// vfs
+//   .src(["src/*.js"])
+//   .pipe(
+//     map((file: File, cb: Function) => {
+//       console.log(yellow(JSON.stringify(file)));
+//       cb(null, file);
+//     })
+//   )
+//   .dest("dist/");
 
 console.log(green(`hello world`));

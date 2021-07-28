@@ -1,11 +1,25 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+__exportStar(require("./config"), exports);
 // import _ from "lodash";
-const vinyl_fs_1 = __importDefault(require("vinyl-fs"));
-const map_stream_1 = __importDefault(require("map-stream"));
+const gulp_1 = require("gulp");
+const gulp_replace_1 = __importDefault(require("gulp-replace"));
+// import vfs from "vinyl-fs";
+// import map from "map-stream";
+// import * as File from "vinyl";
 const chalk_1 = require("chalk");
 // import { program } from "commander";
 // import create from "./order/create";
@@ -24,9 +38,17 @@ const chalk_1 = require("chalk");
 //     await create(name);
 //   });
 // program.parse(process.argv);
-vinyl_fs_1.default.src(["*.js"]).pipe(map_stream_1.default((file, cb) => {
-    console.log(chalk_1.yellow(JSON.stringify(file)));
-    cb(null, file);
-}));
+gulp_1.src(["src/project.config.json"])
+    .pipe(gulp_replace_1.default("$APPID$", "abc"))
+    .pipe(gulp_1.dest("dist"));
+// vfs
+//   .src(["src/*.js"])
+//   .pipe(
+//     map((file: File, cb: Function) => {
+//       console.log(yellow(JSON.stringify(file)));
+//       cb(null, file);
+//     })
+//   )
+//   .dest("dist/");
 console.log(chalk_1.green(`hello world`));
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiaW5kZXguanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi9zcmMvaW5kZXgudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7Ozs7QUFBQSwwQkFBMEI7QUFDMUIsd0RBQTJCO0FBQzNCLDREQUE2QjtBQUU3QixpQ0FBc0M7QUFFdEMsdUNBQXVDO0FBQ3ZDLHVDQUF1QztBQUV2QyxnQ0FBZ0M7QUFDaEMscURBQXFEO0FBQ3JELDBEQUEwRDtBQUMxRCxVQUFVO0FBQ1Ysc0VBQXNFO0FBQ3RFLG1DQUFtQztBQUVuQywwQkFBMEI7QUFDMUIsVUFBVTtBQUNWLGtDQUFrQztBQUNsQyw2RUFBNkU7QUFDN0Usc0NBQXNDO0FBQ3RDLDBDQUEwQztBQUMxQywwQkFBMEI7QUFDMUIsUUFBUTtBQUVSLCtCQUErQjtBQUUvQixrQkFBRyxDQUFDLEdBQUcsQ0FBQyxDQUFDLE1BQU0sQ0FBQyxDQUFDLENBQUMsSUFBSSxDQUNwQixvQkFBRyxDQUFDLENBQUMsSUFBVSxFQUFFLEVBQVksRUFBRSxFQUFFO0lBQy9CLE9BQU8sQ0FBQyxHQUFHLENBQUMsY0FBTSxDQUFDLElBQUksQ0FBQyxTQUFTLENBQUMsSUFBSSxDQUFDLENBQUMsQ0FBQyxDQUFDO0lBQzFDLEVBQUUsQ0FBQyxJQUFJLEVBQUUsSUFBSSxDQUFDLENBQUM7QUFDakIsQ0FBQyxDQUFDLENBQ0gsQ0FBQztBQUVGLE9BQU8sQ0FBQyxHQUFHLENBQUMsYUFBSyxDQUFDLGFBQWEsQ0FBQyxDQUFDLENBQUMifQ==
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiaW5kZXguanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi9zcmMvaW5kZXgudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7Ozs7Ozs7Ozs7Ozs7O0FBQUEsMkNBQXlCO0FBRXpCLDBCQUEwQjtBQUMxQiwrQkFBaUM7QUFDakMsZ0VBQW1DO0FBQ25DLDhCQUE4QjtBQUM5QixnQ0FBZ0M7QUFDaEMsaUNBQWlDO0FBQ2pDLGlDQUE4QjtBQUU5Qix1Q0FBdUM7QUFDdkMsdUNBQXVDO0FBRXZDLGdDQUFnQztBQUNoQyxxREFBcUQ7QUFDckQsMERBQTBEO0FBQzFELFVBQVU7QUFDVixzRUFBc0U7QUFDdEUsbUNBQW1DO0FBRW5DLDBCQUEwQjtBQUMxQixVQUFVO0FBQ1Ysa0NBQWtDO0FBQ2xDLDZFQUE2RTtBQUM3RSxzQ0FBc0M7QUFDdEMsMENBQTBDO0FBQzFDLDBCQUEwQjtBQUMxQixRQUFRO0FBRVIsK0JBQStCO0FBRS9CLFVBQUcsQ0FBQyxDQUFDLHlCQUF5QixDQUFDLENBQUM7S0FDN0IsSUFBSSxDQUFDLHNCQUFPLENBQUMsU0FBUyxFQUFFLEtBQUssQ0FBQyxDQUFDO0tBQy9CLElBQUksQ0FBQyxXQUFJLENBQUMsTUFBTSxDQUFDLENBQUMsQ0FBQztBQUV0QixNQUFNO0FBQ04sdUJBQXVCO0FBQ3ZCLFdBQVc7QUFDWCwwQ0FBMEM7QUFDMUMsbURBQW1EO0FBQ25ELHdCQUF3QjtBQUN4QixTQUFTO0FBQ1QsTUFBTTtBQUNOLG9CQUFvQjtBQUVwQixPQUFPLENBQUMsR0FBRyxDQUFDLGFBQUssQ0FBQyxhQUFhLENBQUMsQ0FBQyxDQUFDIn0=
