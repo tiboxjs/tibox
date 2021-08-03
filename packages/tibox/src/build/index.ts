@@ -219,7 +219,7 @@ async function doBuild(inlineConfig: InlineConfig = {}): Promise<BuildOutput> {
   };
   const tasks = parallel(
     getBuildPackageTask(taskOptions),
-    // TODO: 这个任务的顺序问题，需要调整，放在这首次运行会报错
+    // TODO: 这个任务的顺序问题，需要调整，放在这要考虑是否合理
     extTask(taskOptions),
     jsTask(taskOptions),
     jsonTask(taskOptions),
