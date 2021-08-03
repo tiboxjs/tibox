@@ -17,6 +17,9 @@ import {
 } from "./utils";
 import { AliasOptions, Alias } from "../types/alias";
 import { DevOptions } from "./dev";
+import { parseDestFolderName, parseProjectName } from "./libs/tools";
+import loadJsonFile from "load-json-file";
+
 // import { CLIENT_DIR, DEFAULT_ASSETS_RE } from './constants'
 export interface ConfigEnv {
   command: "build" | "dev";
@@ -27,9 +30,8 @@ export interface ConfigEnv {
 export type UserConfigFn = (env: ConfigEnv) => UserConfig | Promise<UserConfig>;
 export type UserConfigExport = UserConfig | Promise<UserConfig> | UserConfigFn;
 
-export interface ProductDetailConfig {
-  appid: string;
-}
+export type Plugin = () => NodeJS.ReadWriteStream;
+
 export interface UserConfig {
   /**
    * Project root directory. Can be an absolute path, or a path relative from
@@ -42,9 +44,9 @@ export interface UserConfig {
   mode?: string;
   sourceDir?: string;
   destDir?: string;
-  products?: Record<string, ProductDetailConfig>;
   appid?: string;
   projectName?: (project: string, product: string, mode: string) => string;
+  ext?: Record<string, any>;
   /**
    * Server specific options, e.g. host, port, https...
    */
@@ -61,12 +63,27 @@ export interface UserConfig {
    * @default root
    */
   envDir?: string;
+  plugins?: Plugin[];
 }
 
 export interface InlineConfig extends UserConfig {
   configFile?: string | false;
   envFile?: false;
 }
+
+export type handleDistResult = {
+  fileContent: Uint8Array | null;
+  dist: string;
+};
+
+export type gulpHandletype = {
+  regExp: RegExp;
+  fn: (
+    srcPath: string,
+    distRootPath: string,
+    opts?: Record<string, unknown>
+  ) => handleDistResult[] | handleDistResult;
+};
 
 export type ResolvedConfig = Readonly<
   Omit<
@@ -80,21 +97,31 @@ export type ResolvedConfig = Readonly<
     // base: string;
     // publicDir: string
     command: "build" | "dev";
+    project: string;
+    product: string;
+    appid: string;
+    determinedProjectName: string;
+    determinedDestDir: string;
     mode: string;
     isProduction: boolean;
     env: Record<string, any>;
     // resolve: ResolveOptions & {
     //   alias: Alias[]
     // }
-    // plugins: readonly Plugin[]
+    plugins: /* readonly  */ Plugin[];
     // dev: ResolvedDevOptions;
     build: ResolvedBuildOptions;
+    replacer?: (key: string) => string;
     // assetsInclude: (file: string) => boolean
     // logger: Logger
     // createResolver: (options?: Partial<InternalResolveOptions>) => ResolveFn
     // optimizeDeps: Omit<DepOptimizationOptions, 'keepNames'>
   }
 >;
+
+type PackageJson = {
+  version: string;
+};
 
 export async function resolveConfig(
   inlineConfig: InlineConfig,
@@ -135,52 +162,13 @@ export async function resolveConfig(
     }
   }
 
-  // // Define logger
-  // const logger = createLogger(config.logLevel, {
-  //   allowClearScreen: config.clearScreen,
-  // });
-
   // user config may provide an alternative mode
   mode = config.mode || mode;
-
-  // // resolve plugins
-  // const rawUserPlugins = (config.plugins || []).flat().filter((p) => {
-  //   return p && (!p.apply || p.apply === command);
-  // }) as Plugin[];
-  // const [prePlugins, normalPlugins, postPlugins] =
-  //   sortUserPlugins(rawUserPlugins);
-
-  // // run config hooks
-  // const userPlugins = [...prePlugins, ...normalPlugins, ...postPlugins];
-  // for (const p of userPlugins) {
-  //   if (p.config) {
-  //     const res = await p.config(config, configEnv);
-  //     if (res) {
-  //       config = mergeConfig(config, res);
-  //     }
-  //   }
-  // }
 
   // resolve root
   const resolvedRoot = normalizePath(
     config.root ? path.resolve(config.root) : process.cwd()
   );
-
-  // // resolve alias with internal client alias
-  // const resolvedAlias = mergeAlias(
-  //   // #1732 the CLIENT_DIR may contain $$ which cannot be used as direct
-  //   // replacement string.
-  //   // @ts-ignore because @rollup/plugin-alias' type doesn't allow function
-  //   // replacement, but its implementation does work with function values.
-  //   [{ find: /^\/@vite\//, replacement: () => CLIENT_DIR + "/" }],
-  //   config.resolve?.alias || config.alias || []
-  // );
-
-  // const resolveOptions: ResolvedConfig["resolve"] = {
-  //   dedupe: config.dedupe,
-  //   ...config.resolve,
-  //   alias: resolvedAlias,
-  // };
 
   // load .env files
   const envDir = config.envDir
@@ -199,71 +187,26 @@ export async function resolveConfig(
     process.env.NODE_ENV = "production";
   }
 
-  // // resolve public base url
-  // const BASE_URL = resolveBaseUrl(config.base, command === "build", logger);
   const resolvedBuildOptions = resolveBuildOptions(config.build);
 
-  // // resolve cache directory
-  // const pkgPath = lookupFile(
-  //   resolvedRoot,
-  //   [`package.json`],
-  //   true /* pathOnly */
-  // );
-  // const cacheDir = config.cacheDir
-  //   ? path.resolve(resolvedRoot, config.cacheDir)
-  //   : pkgPath && path.join(path.dirname(pkgPath), `node_modules/.vite`);
+  const finalParseProjectName: UserConfig["projectName"] =
+    config.projectName || parseProjectName;
 
-  // const assetsFilter = config.assetsInclude
-  //   ? createFilter(config.assetsInclude)
-  //   : () => false;
+  // 格式通常为 agility-default-development
+  const determinedProjectName = finalParseProjectName(
+    config.project || "project",
+    config.product || defaultProduct,
+    config.mode || defaultMode
+  );
 
-  // // create an internal resolver to be used in special scenarios, e.g.
-  // // optimizer & handling css @imports
-  // const createResolver: ResolvedConfig["createResolver"] = (options) => {
-  //   let aliasContainer: PluginContainer | undefined;
-  //   let resolverContainer: PluginContainer | undefined;
-  //   return async (id, importer, aliasOnly, ssr) => {
-  //     let container: PluginContainer;
-  //     if (aliasOnly) {
-  //       container =
-  //         aliasContainer ||
-  //         (aliasContainer = await createPluginContainer({
-  //           ...resolved,
-  //           plugins: [aliasPlugin({ entries: resolved.resolve.alias })],
-  //         }));
-  //     } else {
-  //       container =
-  //         resolverContainer ||
-  //         (resolverContainer = await createPluginContainer({
-  //           ...resolved,
-  //           plugins: [
-  //             aliasPlugin({ entries: resolved.resolve.alias }),
-  //             resolvePlugin({
-  //               ...resolved.resolve,
-  //               root: resolvedRoot,
-  //               isProduction,
-  //               isBuild: command === "build",
-  //               ssrTarget: resolved.ssr?.target,
-  //               asSrc: true,
-  //               preferRelative: false,
-  //               tryIndex: true,
-  //               ...options,
-  //             }),
-  //           ],
-  //         }));
-  //     }
-  //     return (await container.resolveId(id, importer, undefined, ssr))?.id;
-  //   };
-  // };
+  // 格式通常为 dist-agility-default-development
+  const determinedDestDir: string = parseDestFolderName(
+    config.project || "project",
+    config.product || defaultProduct,
+    config.mode || defaultMode
+  );
 
-  // const { publicDir } = config;
-  // const resolvedPublicDir =
-  //   publicDir !== false && publicDir !== ""
-  //     ? path.resolve(
-  //         resolvedRoot,
-  //         typeof publicDir === "string" ? publicDir : "public"
-  //       )
-  //     : "";
+  const packageJson = (await loadJsonFile("./package.json")) as PackageJson;
 
   const resolved: ResolvedConfig = {
     ...config,
@@ -276,7 +219,12 @@ export async function resolveConfig(
     // publicDir: resolvedPublicDir,
     // cacheDir,
     command,
+    project: config.project || "newProject",
+    product: config.product || "default",
     mode,
+    appid: config.appid || "",
+    determinedProjectName,
+    determinedDestDir,
     isProduction,
     // plugins: userPlugins,
     // server: resolveServerOptions(resolvedRoot, config.server),
@@ -288,6 +236,7 @@ export async function resolveConfig(
       DEV: !isProduction,
       PROD: isProduction,
     },
+    plugins: config.plugins || [],
     // assetsInclude(file: string) {
     //   return DEFAULT_ASSETS_RE.test(file) || assetsFilter(file);
     // },
@@ -300,6 +249,16 @@ export async function resolveConfig(
     //     ...config.optimizeDeps?.esbuildOptions,
     //   },
     // },
+    replacer: (key) => {
+      // TODO: 暂时先放这，不知道应该放哪
+      const replaceStr: Record<string, string> = {
+        PRODUCT_NAME: config.product || "default",
+        IS_RELEASE: (mode === "production").toString(),
+        VERSION: packageJson.version,
+      };
+      console.log(`replacer: ${key}: ${replaceStr[key]}`);
+      return replaceStr[key];
+    },
   };
 
   // (resolved.plugins as Plugin[]) = await resolvePlugins(

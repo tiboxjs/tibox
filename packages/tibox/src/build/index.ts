@@ -1,6 +1,17 @@
 import chalk from "chalk";
+import path from "path";
 import { InlineConfig, resolveConfig } from "../config";
-
+import { parallel } from "gulp";
+import imageTask from "./taskImage";
+import jsonTask from "./taskJson";
+import jsTask from "./taskJs";
+import wxmlTask from "./taskWxml";
+import wxsTask from "./taskWxs";
+import wxssTask from "./taskWxss";
+import { getBuildPackageTask } from "./init";
+import { TaskOptions } from "../libs/options";
+import extTask from "./ext";
+import replace from "gulp-replace";
 export interface BuildOptions {
   // /**
   //  * Base public path when served in production.
@@ -176,10 +187,56 @@ export async function build(
 }
 
 async function doBuild(inlineConfig: InlineConfig = {}): Promise<BuildOutput> {
-  const config = await resolveConfig(inlineConfig, "build", "production");
+  const config = await resolveConfig(
+    inlineConfig,
+    "build",
+    "default",
+    "production"
+  );
   console.log(config);
-  console.log(chalk.red(`appid is ${config.appid}`));
 
+  // 格式通常为 /path/to/project/dist-agility-default-development
+  const resolvedDestDir = path.resolve(config.determinedDestDir);
+  console.log(chalk.red(`resolvedDestDir is ${resolvedDestDir}`));
+
+  console.log(chalk.green(`config.ext:${config.ext}`));
+
+  const taskOptions: TaskOptions = {
+    destDir: config.determinedDestDir,
+    resolvedConfig: config,
+    plugins: [
+      () => {
+        return replace(/\[\[\w+\]\]/g, (match) => {
+          const key = match.substring(2, match.length - 2);
+          return (
+            (typeof config.replacer === "function" && config.replacer(key)) ||
+            match
+          );
+        });
+      },
+      ...config.plugins,
+    ],
+  };
+  const tasks = parallel(
+    getBuildPackageTask(taskOptions),
+    // TODO: 这个任务的顺序问题，需要调整，放在这首次运行会报错
+    extTask(taskOptions),
+    jsTask(taskOptions),
+    jsonTask(taskOptions),
+    // i18nTask,
+    wxmlTask(taskOptions),
+    wxssTask(taskOptions),
+    wxsTask(taskOptions),
+    imageTask(taskOptions)
+    // watchTask,
+  );
+  const result = await tasks((err) => {
+    if (err) {
+      console.error(err);
+      process.exit(1);
+    }
+  });
+  console.log(chalk.red(`result:${result}`));
   return {};
 }
 

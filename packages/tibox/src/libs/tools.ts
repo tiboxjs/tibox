@@ -1,12 +1,12 @@
-export function buildDestFolderName(
+export function parseDestFolderName(
   project: string,
   product: string,
   mode: string
 ): string {
-  return `dist-${buildProjectName(project, product, mode)}`;
+  return `dist-${parseProjectName(project, product, mode)}`;
 }
 
-export function buildProjectName(
+export function parseProjectName(
   project: string,
   product: string,
   mode: string

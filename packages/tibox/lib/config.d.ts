@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { BuildOptions, ResolvedBuildOptions } from "./build";
 import { DevOptions } from "./dev";
 export interface ConfigEnv {
@@ -7,9 +8,7 @@ export interface ConfigEnv {
 }
 export declare type UserConfigFn = (env: ConfigEnv) => UserConfig | Promise<UserConfig>;
 export declare type UserConfigExport = UserConfig | Promise<UserConfig> | UserConfigFn;
-export interface ProductDetailConfig {
-    appid: string;
-}
+export declare type Plugin = () => NodeJS.ReadWriteStream;
 export interface UserConfig {
     /**
      * Project root directory. Can be an absolute path, or a path relative from
@@ -22,9 +21,9 @@ export interface UserConfig {
     mode?: string;
     sourceDir?: string;
     destDir?: string;
-    products?: Record<string, ProductDetailConfig>;
     appid?: string;
     projectName?: (project: string, product: string, mode: string) => string;
+    ext?: Record<string, any>;
     /**
      * Server specific options, e.g. host, port, https...
      */
@@ -39,20 +38,36 @@ export interface UserConfig {
      * @default root
      */
     envDir?: string;
+    plugins?: Plugin[];
 }
 export interface InlineConfig extends UserConfig {
     configFile?: string | false;
     envFile?: false;
 }
+export declare type handleDistResult = {
+    fileContent: Uint8Array | null;
+    dist: string;
+};
+export declare type gulpHandletype = {
+    regExp: RegExp;
+    fn: (srcPath: string, distRootPath: string, opts?: Record<string, unknown>) => handleDistResult[] | handleDistResult;
+};
 export declare type ResolvedConfig = Readonly<Omit<UserConfig, "plugins" | "alias" | "dedupe" | "assetsInclude" | "optimizeDeps"> & {
     configFile: string | undefined;
     inlineConfig: InlineConfig;
     root: string;
     command: "build" | "dev";
+    project: string;
+    product: string;
+    appid: string;
+    determinedProjectName: string;
+    determinedDestDir: string;
     mode: string;
     isProduction: boolean;
     env: Record<string, any>;
+    plugins: Plugin[];
     build: ResolvedBuildOptions;
+    replacer?: (key: string) => string;
 }>;
 export declare function resolveConfig(inlineConfig: InlineConfig, command: "build" | "dev", defaultProduct?: string, defaultMode?: string): Promise<ResolvedConfig>;
 export declare function mergeConfig(a: Record<string, any>, b: Record<string, any>, isRoot?: boolean): Record<string, any>;

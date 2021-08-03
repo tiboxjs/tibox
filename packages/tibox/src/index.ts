@@ -1,12 +1,12 @@
 export * from "./config";
 
 // import _ from "lodash";
-import { src, dest } from "gulp";
-import replace from "gulp-replace";
+// import { src, dest } from "gulp";
+// import replace from "gulp-replace";
 // import vfs from "vinyl-fs";
 // import map from "map-stream";
 // import * as File from "vinyl";
-import { green } from "chalk";
+// import { green } from "chalk";
 
 // import { program } from "commander";
 // import create from "./order/create";
@@ -29,9 +29,9 @@ import { green } from "chalk";
 
 // program.parse(process.argv);
 
-src(["src/project.config.json"])
-  .pipe(replace("$APPID$", "abc"))
-  .pipe(dest("dist"));
+// src(["src/project.config.json"])
+//   .pipe(replace("$APPID$", "abc"))
+//   .pipe(dest("dist"));
 
 // vfs
 //   .src(["src/*.js"])
@@ -43,4 +43,4 @@ src(["src/project.config.json"])
 //   )
 //   .dest("dist/");
 
-console.log(green(`hello world`));
+// console.log(green(`hello world`));
