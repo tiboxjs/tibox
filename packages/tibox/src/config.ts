@@ -19,6 +19,7 @@ import { AliasOptions, Alias } from "../types/alias";
 import { DevOptions } from "./dev";
 import { parseDestFolderName, parseProjectName } from "./libs/tools";
 import loadJsonFile from "load-json-file";
+import { LogLevel } from "./logger";
 
 // import { CLIENT_DIR, DEFAULT_ASSETS_RE } from './constants'
 export interface ConfigEnv {
@@ -42,8 +43,8 @@ export interface UserConfig {
   project?: string;
   product?: string;
   mode?: string;
-  sourceDir?: string;
-  destDir?: string;
+  // sourceDir?: string;
+  // destDir?: string;
   appid?: string;
   projectName?: (project: string, product: string, mode: string) => string;
   ext?: Record<string, any>;
@@ -63,6 +64,13 @@ export interface UserConfig {
    * @default root
    */
   envDir?: string;
+
+  /**
+   * Log level.
+   * Default: 'info'
+   */
+  logLevel?: LogLevel;
+
   plugins?: Plugin[];
 }
 
@@ -553,6 +561,12 @@ export async function loadConfigFromFile(
   }
 }
 
+/**
+ * 打包配置文件，将其依赖一起解析
+ * @param fileName
+ * @param mjs
+ * @returns
+ */
 async function bundleConfigFile(
   fileName: string,
   mjs = false

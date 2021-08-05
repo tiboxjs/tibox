@@ -1,6 +1,7 @@
 /// <reference types="node" />
 import { BuildOptions, ResolvedBuildOptions } from "./build";
 import { DevOptions } from "./dev";
+import { LogLevel } from "./logger";
 export interface ConfigEnv {
     command: "build" | "dev";
     product: string;
@@ -19,8 +20,6 @@ export interface UserConfig {
     project?: string;
     product?: string;
     mode?: string;
-    sourceDir?: string;
-    destDir?: string;
     appid?: string;
     projectName?: (project: string, product: string, mode: string) => string;
     ext?: Record<string, any>;
@@ -38,6 +37,11 @@ export interface UserConfig {
      * @default root
      */
     envDir?: string;
+    /**
+     * Log level.
+     * Default: 'info'
+     */
+    logLevel?: LogLevel;
     plugins?: Plugin[];
 }
 export interface InlineConfig extends UserConfig {

@@ -1,6 +1,6 @@
 // import chalk from "chalk"
 import { src, dest } from "gulp";
-// import path from "path"
+import path from "path";
 // import replace from "gulp-replace";
 import changed from "gulp-changed";
 // import filter from "gulp-filter"
@@ -29,10 +29,11 @@ const jsonFile = [
 export const files: string[] = jsonFile;
 
 export default function jsonTask(
-  options: TaskOptions
+  options: TaskOptions,
+  filePath: string
 ): () => NodeJS.ReadWriteStream {
   return () => {
-    let source = src(jsonFile);
+    let source = src(`src/${filePath}`);
     for (let index = 0; index < options.plugins.length; index++) {
       source = source.pipe(options.plugins[index]());
     }
@@ -101,7 +102,7 @@ export default function jsonTask(
             hasChanged: changed.compareLastModifiedTime,
           })
         )
-        .pipe(dest(options.destDir))
+        .pipe(dest(path.dirname(`${options.destDir}/${filePath}`)))
     );
   };
 }

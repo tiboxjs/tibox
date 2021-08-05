@@ -1,4 +1,5 @@
 import { src, dest } from "gulp";
+import path from "path";
 // import replace from "gulp-replace";
 import changed from "gulp-changed";
 // import prune from "gulp-prune";
@@ -20,10 +21,11 @@ import { subComponents } from "../libs/plugins";
 const jsFile = ["src/**/*.js"];
 
 export default function jsTask(
-  options: TaskOptions
+  options: TaskOptions,
+  filePath: string
 ): () => NodeJS.ReadWriteStream {
   return () => {
-    let source = src(jsFile);
+    let source = src(`src/${filePath}`);
     for (let index = 0; index < options.plugins.length; index++) {
       source = source.pipe(options.plugins[index]());
     }
@@ -56,7 +58,6 @@ export default function jsTask(
         //   )
         // )
         .pipe(subComponents())
-        // .pipe(replace(patternReg, replaceFunction))
         // .pipe(reverseHome())
         // .pipe(
         //   prune({
@@ -71,7 +72,7 @@ export default function jsTask(
             hasChanged: changed.compareLastModifiedTime,
           })
         )
-        .pipe(dest(options.destDir))
+        .pipe(dest(path.dirname(`${options.destDir}/${filePath}`)))
     );
   };
 }

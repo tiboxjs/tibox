@@ -57,7 +57,7 @@ async function doBuild(inlineConfig = {}) {
         ],
     };
     const tasks = gulp_1.parallel(init_1.getBuildPackageTask(taskOptions), 
-    // TODO: 这个任务的顺序问题，需要调整，放在这首次运行会报错
+    // TODO: 这个任务的顺序问题，需要调整，放在这要考虑是否合理
     ext_1.default(taskOptions), taskJs_1.default(taskOptions), taskJson_1.default(taskOptions), 
     // i18nTask,
     taskWxml_1.default(taskOptions), taskWxss_1.default(taskOptions), taskWxs_1.default(taskOptions), taskImage_1.default(taskOptions)

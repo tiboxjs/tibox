@@ -1,11 +1,15 @@
 import { src, dest } from "gulp";
+import debug from "gulp-debug";
 // import replace from "gulp-replace";
 import changed from "gulp-changed";
+// import prune from "gulp-prune";
+// import filter from "gulp-filter";
+// import gulpIf from "gulp-if";
+// import rename from "gulp-rename";
 import { TaskOptions } from "../libs/options";
 import { subComponents } from "../libs/plugins";
-// import prune from "gulp-prune"
-
-// const { subComponets } = require('./plugins')
+import path from "path";
+// const { addWxs, subComponets, reverseHome } = require('./plugins')
 
 // const {
 //   distFolder,
@@ -14,23 +18,27 @@ import { subComponents } from "../libs/plugins";
 //   nodeModulesFilter,
 // } = require('./tools')
 
-const wxsFile = ["src/**/*.wxs"];
+const wxmlFile = ["src/**/*.wxml"];
 
-export default function wxsTask(
-  options: TaskOptions
+export default function wxmlTask(
+  options: TaskOptions,
+  filePath: string
 ): () => NodeJS.ReadWriteStream {
   return () => {
-    let source = src(wxsFile);
+    let source = src(`src/${filePath}`);
     for (let index = 0; index < options.plugins.length; index++) {
       source = source.pipe(options.plugins[index]());
     }
     return (
       source
+        // .pipe(addWxs())
+        // .pipe(replace(patternReg, replaceFunction))
         .pipe(subComponents())
+        // .pipe(reverseHome())
         // .pipe(
         //   prune({
         //     dest: distFolder,
-        //     ext: ['.wxs'],
+        //     ext: ['.wxml'],
         //     verbose: true,
         //     filter: nodeModulesFilter,
         //   }),
@@ -40,8 +48,11 @@ export default function wxsTask(
             hasChanged: changed.compareLastModifiedTime,
           })
         )
-        .pipe(dest(options.destDir))
+        .pipe(debug())
+        .pipe(dest(path.dirname(`${options.destDir}/${filePath}`)))
     );
   };
 }
-module.exports.files = wxsFile;
+
+module.exports = wxmlTask;
+module.exports.files = wxmlFile;

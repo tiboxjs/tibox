@@ -1,5 +1,6 @@
 import { src, dest } from "gulp";
 import changed from "gulp-changed";
+import path from "path";
 import { TaskOptions } from "../libs/options";
 // import prune from "gulp-prune";
 // import debug from "gulp-debug";
@@ -28,11 +29,12 @@ export const files = imageFile;
 // const menuImageSpecial: string[] = [];
 
 export default function imageTask(
-  options: TaskOptions
+  options: TaskOptions,
+  filePath: string
 ): () => NodeJS.ReadWriteStream {
   return () => {
     return (
-      src(imageFile)
+      src(`src/${filePath}`)
         .pipe(subComponents())
         // .pipe(
         //   gulpif(
@@ -73,7 +75,7 @@ export default function imageTask(
             hasChanged: changed.compareLastModifiedTime,
           })
         )
-        .pipe(dest(options.destDir))
+        .pipe(dest(path.dirname(`${options.destDir}/${filePath}`)))
     );
   };
 }

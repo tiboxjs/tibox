@@ -6,7 +6,7 @@ import changed from "gulp-changed";
 // import gulpIf from "gulp-if";
 // import rename from "gulp-rename";
 import { TaskOptions } from "../libs/options";
-import { subComponents } from "./plugins";
+import { subComponents } from "../libs/plugins";
 // const { addWxs, subComponets, reverseHome } = require('./plugins')
 
 // const {

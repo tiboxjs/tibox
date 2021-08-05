@@ -5,6 +5,7 @@ import { src, dest } from "gulp";
 // import prune from "gulp-prune"
 import { TaskOptions } from "../libs/options";
 import { subComponents } from "../libs/plugins";
+import path from "path";
 // const { subComponets, reverseHome } = require('./plugins')
 
 // const {
@@ -17,10 +18,11 @@ import { subComponents } from "../libs/plugins";
 const wxssFile = ["src/**/*.wxss"];
 
 export default function wxssTask(
-  options: TaskOptions
+  options: TaskOptions,
+  filePath: string
 ): () => NodeJS.ReadWriteStream {
   return () => {
-    let source = src(wxssFile);
+    let source = src(`src/${filePath}`);
     for (let index = 0; index < options.plugins.length; index++) {
       source = source.pipe(options.plugins[index]());
     }
@@ -43,7 +45,7 @@ export default function wxssTask(
         //     hasChanged: changed.compareLastModifiedTime,
         //   })
         // )
-        .pipe(dest(options.destDir))
+        .pipe(dest(path.dirname(`${options.destDir}/${filePath}`)))
     );
   };
 }
