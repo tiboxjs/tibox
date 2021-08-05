@@ -42,7 +42,9 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
   // One-liner for current directory
   const root = inlineConfig.root || ".";
   // 不监听 package.json、tibox.config.js、.env.*
-  const needWatches = ["src/"/* , "tailwind.config.js", "tailwind/", "svg/" */];
+  const needWatches = [
+    "src/" /* , "tailwind.config.js", "tailwind/", "svg/" */,
+  ];
   const resolvedPath = path.resolve(root, "src/");
   createLogger().info(chalk.green(`resolvedPath: ${resolvedPath}`));
   chokidar

@@ -230,13 +230,13 @@ async function doBuild(inlineConfig: InlineConfig = {}): Promise<BuildOutput> {
     imageTask(taskOptions)
     // watchTask,
   );
-  const result = await tasks((err) => {
+  /* const result =  */ await tasks((err) => {
     if (err) {
       console.error(err);
       process.exit(1);
     }
   });
-  console.log(chalk.red(`result:${result}`));
+  // console.log(chalk.red(`result:${result}`));
   return {};
 }
 
