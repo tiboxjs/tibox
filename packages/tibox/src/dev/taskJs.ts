@@ -7,7 +7,7 @@ import changed from "gulp-changed";
 // import gulpIf from "gulp-if";
 // import rename from "gulp-rename";
 import { TaskOptions } from "../libs/options";
-import { subComponents } from "../libs/plugins";
+import { subComponents } from "./subComponents";
 // const { subComponets /* , reverseHome */ } = require("./plugins");
 
 // const {
@@ -57,7 +57,7 @@ export default function jsTask(
         //     })
         //   )
         // )
-        .pipe(subComponents())
+        .pipe(subComponents(options.resolvedConfig))
         // .pipe(reverseHome())
         // .pipe(
         //   prune({

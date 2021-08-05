@@ -4,7 +4,7 @@ import { src, dest } from "gulp";
 // import changed from "gulp-changed";
 // import prune from "gulp-prune"
 import { TaskOptions } from "../libs/options";
-import { subComponents } from "../libs/plugins";
+import { subComponents } from "./subComponents";
 import path from "path";
 // const { subComponets, reverseHome } = require('./plugins')
 
@@ -29,7 +29,7 @@ export default function wxssTask(
     return (
       source
         // .pipe(replace(patternReg, replaceFunction))
-        .pipe(subComponents())
+        .pipe(subComponents(options.resolvedConfig))
         // .pipe(reverseHome())
         // .pipe(
         //   prune({

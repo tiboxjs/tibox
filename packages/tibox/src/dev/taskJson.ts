@@ -8,7 +8,7 @@ import changed from "gulp-changed";
 // import gulpIf from "gulp-if"
 // import jeditor from "gulp-json-editor"
 import { TaskOptions } from "../libs/options";
-import { subComponents } from "../libs/plugins";
+import { subComponents } from "./subComponents";
 // const { subComponets, reverseHome } = require('./plugins');
 // const { options, plugins, colorsKey, colorsMain } = require('./tools');
 
@@ -87,7 +87,7 @@ export default function jsonTask(
         //     }),
         //   ),
         // )
-        .pipe(subComponents())
+        .pipe(subComponents(options.resolvedConfig))
         // .pipe(reverseHome())
         // .pipe(
         //   prune({

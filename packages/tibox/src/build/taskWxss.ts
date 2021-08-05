@@ -4,7 +4,7 @@ import { src, dest } from "gulp";
 // import changed from "gulp-changed";
 // import prune from "gulp-prune"
 import { TaskOptions } from "../libs/options";
-import { subComponents } from "../libs/plugins";
+import { subComponents } from "./subComponents";
 // const { subComponets, reverseHome } = require('./plugins')
 
 // const {

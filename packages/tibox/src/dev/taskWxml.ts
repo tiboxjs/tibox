@@ -1,5 +1,4 @@
 import { src, dest } from "gulp";
-import debug from "gulp-debug";
 // import replace from "gulp-replace";
 import changed from "gulp-changed";
 // import prune from "gulp-prune";
@@ -7,7 +6,7 @@ import changed from "gulp-changed";
 // import gulpIf from "gulp-if";
 // import rename from "gulp-rename";
 import { TaskOptions } from "../libs/options";
-import { subComponents } from "../libs/plugins";
+import { subComponents } from "./subComponents";
 import path from "path";
 // const { addWxs, subComponets, reverseHome } = require('./plugins')
 
@@ -33,7 +32,7 @@ export default function wxmlTask(
       source
         // .pipe(addWxs())
         // .pipe(replace(patternReg, replaceFunction))
-        .pipe(subComponents())
+        .pipe(subComponents(options.resolvedConfig))
         // .pipe(reverseHome())
         // .pipe(
         //   prune({
@@ -48,7 +47,6 @@ export default function wxmlTask(
             hasChanged: changed.compareLastModifiedTime,
           })
         )
-        .pipe(debug())
         .pipe(dest(path.dirname(`${options.destDir}/${filePath}`)))
     );
   };

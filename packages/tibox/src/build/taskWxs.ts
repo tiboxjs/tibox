@@ -2,7 +2,7 @@ import { src, dest } from "gulp";
 // import replace from "gulp-replace";
 import changed from "gulp-changed";
 import { TaskOptions } from "../libs/options";
-import { subComponents } from "../libs/plugins";
+import { subComponents } from "./subComponents";
 // import prune from "gulp-prune"
 
 // const { subComponets } = require('./plugins')

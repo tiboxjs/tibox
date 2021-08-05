@@ -13,6 +13,7 @@ import jsonTask from "./taskJson";
 import jsTask from "./taskJs";
 import imageTask from "./taskImage";
 import _ from "lodash";
+import { getBuildPackageTask } from "./init";
 
 export interface DevOptions {
   mock: boolean;
@@ -39,6 +40,7 @@ export async function dev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
   }
 }
 async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
+  const logger = createLogger(inlineConfig.logLevel);
   // One-liner for current directory
   const root = inlineConfig.root || ".";
   // 不监听 package.json、tibox.config.js、.env.*
@@ -46,107 +48,73 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
     "src/" /* , "tailwind.config.js", "tailwind/", "svg/" */,
   ];
   const resolvedPath = path.resolve(root, "src/");
-  createLogger().info(chalk.green(`resolvedPath: ${resolvedPath}`));
-  chokidar
-    .watch(
-      _.map(needWatches, (item) => path.resolve(root, item)),
-      {
-        ignored: ["**/node_modules/**", "**/.git/**"],
-      }
-    )
-    .on("add", (ppath) => {
-      console.log(
-        "add",
-        path.relative(inlineConfig.root || process.cwd(), ppath)
-      );
-    })
-    .on("change", async (ppath) => {
-      const config = await resolveConfig(
-        inlineConfig,
-        "dev",
-        "default",
-        "production"
-      );
-      const taskOptions: TaskOptions = {
-        destDir: config.determinedDestDir,
-        resolvedConfig: config,
-        plugins: [
-          () => {
-            return replace(/\[\[\w+\]\]/g, (match) => {
-              const key = match.substring(2, match.length - 2);
-              return (
-                (typeof config.replacer === "function" &&
-                  config.replacer(key)) ||
-                match
-              );
-            });
-          },
-          ...config.plugins,
-        ],
-      };
+  logger.info(chalk.green(`resolvedPath: ${resolvedPath}`));
 
-      const extName = path.extname(ppath);
-      console.log(`extName:${extName} ppath:${ppath}`);
-      const asyncTasks: Undertaker.Task[] = [];
+  const config = await resolveConfig(
+    inlineConfig,
+    "dev",
+    "default",
+    "production"
+  );
+  const taskOptions: TaskOptions = {
+    destDir: config.determinedDestDir,
+    resolvedConfig: config,
+    plugins: [
+      () => {
+        return replace(/\[\[\w+\]\]/g, (match) => {
+          const key = match.substring(2, match.length - 2);
+          return (
+            (typeof config.replacer === "function" && config.replacer(key)) ||
+            match
+          );
+        });
+      },
+      ...config.plugins,
+    ],
+  };
+
+  async function handleFile(
+    eventName: "add" | "change",
+    ppath: string
+  ): Promise<void> {
+    const extName = path.extname(ppath);
+    const asyncTasks: Undertaker.Task[] = [];
+
+    const options = taskOptions;
+    const filePath = path.relative(
+      path.resolve(inlineConfig.root || process.cwd(), "src/"),
+      ppath
+    );
+    // logger.info(chalk.gray(`ext:${extName} path:${filePath}`));
+
+    if (/(project\.config\.json)|(package\.json)$/.test(filePath)) {
+      const taskFn = getBuildPackageTask(options);
+      await taskFn((err) => {
+        if (err) {
+          console.error(err);
+          process.exit(1);
+        }
+      });
+    } else {
       switch (extName) {
         case ".wxml":
-          asyncTasks.push(
-            wxmlTask(
-              taskOptions,
-              path.relative(
-                path.resolve(inlineConfig.root || process.cwd(), "src/"),
-                ppath
-              )
-            )
-          );
+          asyncTasks.push(wxmlTask(options, filePath));
           break;
         case ".wxss":
-          asyncTasks.push(
-            wxssTask(
-              taskOptions,
-              path.relative(
-                path.resolve(inlineConfig.root || process.cwd(), "src/"),
-                ppath
-              )
-            )
-          );
+          asyncTasks.push(wxssTask(options, filePath));
           break;
         case ".json":
-          asyncTasks.push(
-            jsonTask(
-              taskOptions,
-              path.relative(
-                path.resolve(inlineConfig.root || process.cwd(), "src/"),
-                ppath
-              )
-            )
-          );
+          asyncTasks.push(jsonTask(options, filePath));
           break;
         case ".js":
-          asyncTasks.push(
-            jsTask(
-              taskOptions,
-              path.relative(
-                path.resolve(inlineConfig.root || process.cwd(), "src/"),
-                ppath
-              )
-            )
-          );
+          asyncTasks.push(jsTask(options, filePath));
           break;
         case ".jpg":
         case ".gif":
         case ".png":
         case ".bmp":
         case ".svg":
-          asyncTasks.push(
-            imageTask(
-              taskOptions,
-              path.relative(
-                path.resolve(inlineConfig.root || process.cwd(), "src/"),
-                ppath
-              )
-            )
-          );
+          asyncTasks.push(imageTask(options, filePath));
           break;
       }
       if (asyncTasks.length) {
@@ -159,10 +127,29 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
         });
       }
 
-      console.log(
-        "change",
-        path.relative(inlineConfig.root || process.cwd(), ppath)
-      );
+      // logger.info(
+      //   chalk.green(
+      //     `${eventName} ${path.relative(
+      //       inlineConfig.root || process.cwd(),
+      //       ppath
+      //     )}`
+      //   )
+      // );
+    }
+  }
+
+  chokidar
+    .watch(
+      _.map(needWatches, (item) => path.resolve(root, item)),
+      {
+        ignored: ["**/node_modules/**", "**/.git/**"],
+      }
+    )
+    .on("add", (ppath) => {
+      handleFile("add", ppath);
+    })
+    .on("change", async (ppath) => {
+      handleFile("change", ppath);
     });
   return {} as DevOutput;
 }

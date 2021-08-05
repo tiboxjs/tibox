@@ -1,12 +1,12 @@
 import { src, dest } from "gulp";
 import changed from "gulp-changed";
 import { TaskOptions } from "../libs/options";
+import { subComponents } from "./subComponents";
 // import prune from "gulp-prune";
 // import debug from "gulp-debug";
 // import path from "path";
 // import gulpif from "gulp-if";
 // import filter from "gulp-filter";
-import { subComponents } from "../libs/plugins";
 // const { subComponets } = require("./plugins");
 
 // const {

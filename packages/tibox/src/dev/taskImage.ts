@@ -7,7 +7,7 @@ import { TaskOptions } from "../libs/options";
 // import path from "path";
 // import gulpif from "gulp-if";
 // import filter from "gulp-filter";
-import { subComponents } from "../libs/plugins";
+import { subComponents } from "./subComponents";
 // const { subComponets } = require("./plugins");
 
 // const {
@@ -35,7 +35,7 @@ export default function imageTask(
   return () => {
     return (
       src(`src/${filePath}`)
-        .pipe(subComponents())
+        .pipe(subComponents(options.resolvedConfig))
         // .pipe(
         //   gulpif(
         //     (file) => {
