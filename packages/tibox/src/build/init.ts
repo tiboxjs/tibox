@@ -1,6 +1,7 @@
 import { src, dest, series } from "gulp";
 import { exec, ExecException } from "child_process";
 import path from "path";
+import os from "os";
 import through from "through2";
 // import replace from "gulp-replace";
 import _ from "lodash";
@@ -159,7 +160,9 @@ export function cliBuildNpm(
     console.log(chalk.gray(`目标路径:${targetPath}`));
     const startTime = Date.now();
     return exec(
-      `cli build-npm --project "${targetPath}"`,
+      `${
+        os.platform() === "win32" ? "cli.bat" : "cli"
+      } build-npm --project "${targetPath}"`,
       { timeout: 60000 },
       (err) => {
         console.log(chalk.green(`cli 构建npm end ${Date.now() - startTime}ms`));
