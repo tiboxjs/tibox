@@ -46,7 +46,8 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
   const root = inlineConfig.root || ".";
   // 不监听 package.json、tibox.config.js、.env.*
   const needWatches = [
-    "src/" /* , "tailwind.config.js", "tailwind/", "svg/" */,
+    "src/",
+    "project.config.json" /* , "tailwind.config.js", "tailwind/", "svg/" */,
   ];
   const resolvedPath = path.resolve(root, "src/");
   logger.info(chalk.green(`resolvedPath: ${resolvedPath}`));
@@ -87,7 +88,6 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
       ppath
     );
     // logger.info(chalk.gray(`ext:${extName} path:${filePath}`));
-
     if (/(project\.config\.json)|(package\.json)$/.test(filePath)) {
       const taskFn = getBuildPackageTask(options);
       await taskFn((err) => {

@@ -1,14 +1,14 @@
 import fs from "fs-extra";
 
 import os from "os";
+import path from "path";
 import { TaskOptions } from "../libs/options";
 
 export default function extTask(options: TaskOptions): () => Promise<any> {
   return async () => {
     // TODO: 待优化
-    await fs.ensureDir(options.destDir);
-    console.log(`哈啊哈哈哈哈哈`);
-    const stream = fs.createWriteStream(`${options.destDir}/ext.js`);
+    await fs.ensureDir(path.resolve(options.destDir, "ext/"));
+    const stream = fs.createWriteStream(`${options.destDir}/ext/ext.js`);
     stream.write(
       Buffer.from(
         `module.exports = ${JSON.stringify(

@@ -5,8 +5,7 @@ import loadJsonFile from "load-json-file";
 import internal from "stream";
 import { ResolvedConfig } from "../config";
 import fs from "fs";
-import chalk from "chalk";
-// const chalk = require('chalk')
+// import chalk from "chalk";
 
 type SubComponentsConfig = {
   subPackages: string[];
@@ -55,7 +54,6 @@ export function subComponents(
                   "components",
                   ..._.tail(relativePathArray)
                 );
-                console.log(chalk.red(`other.path:${other.path}`));
                 fs.mkdirSync(path.dirname(other.path), {
                   recursive: true,
                 });

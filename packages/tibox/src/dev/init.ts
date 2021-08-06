@@ -35,7 +35,7 @@ function copyProjectConfigJson(
   options: TaskOptions
 ): () => NodeJS.ReadWriteStream {
   return () => {
-    return src("src/project.config.json")
+    return src("project.config.json")
       .pipe(
         through.obj((file, encode, cb) => {
           const projectConfigJson = JSON.parse(file.contents.toString());
