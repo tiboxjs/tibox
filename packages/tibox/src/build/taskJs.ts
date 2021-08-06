@@ -25,7 +25,7 @@ export default function jsTask(
   return () => {
     let source = src(jsFile);
     for (let index = 0; index < options.plugins.length; index++) {
-      source = source.pipe(options.plugins[index]());
+      source = source.pipe(options.plugins[index](options.resolvedConfig));
     }
     return (
       source

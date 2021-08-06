@@ -14,6 +14,7 @@ import jsTask from "./taskJs";
 import imageTask from "./taskImage";
 import _ from "lodash";
 import { getBuildPackageTask } from "./init";
+import extTask from "./ext";
 
 export interface DevOptions {
   mock: boolean;
@@ -137,7 +138,10 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
       // );
     }
   }
-
+  parallel(extTask(taskOptions))((err) => {
+    console.error(chalk.red(err));
+  });
+  await extTask(taskOptions);
   chokidar
     .watch(
       _.map(needWatches, (item) => path.resolve(root, item)),

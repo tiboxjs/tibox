@@ -34,7 +34,7 @@ export default function jsonTask(
   return () => {
     let source = src(jsonFile);
     for (let index = 0; index < options.plugins.length; index++) {
-      source = source.pipe(options.plugins[index]());
+      source = source.pipe(options.plugins[index](options.resolvedConfig));
     }
     return (
       source

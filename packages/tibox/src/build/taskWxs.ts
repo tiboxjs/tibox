@@ -22,7 +22,7 @@ export default function wxsTask(
   return () => {
     let source = src(wxsFile);
     for (let index = 0; index < options.plugins.length; index++) {
-      source = source.pipe(options.plugins[index]());
+      source = source.pipe(options.plugins[index](options.resolvedConfig));
     }
     return (
       source

@@ -31,7 +31,7 @@ export interface ConfigEnv {
 export type UserConfigFn = (env: ConfigEnv) => UserConfig | Promise<UserConfig>;
 export type UserConfigExport = UserConfig | Promise<UserConfig> | UserConfigFn;
 
-export type Plugin = () => NodeJS.ReadWriteStream;
+export type Plugin = (resolveConfig: ResolvedConfig) => NodeJS.ReadWriteStream;
 
 export interface UserConfig {
   /**
