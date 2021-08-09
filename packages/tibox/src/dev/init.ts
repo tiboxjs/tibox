@@ -1,7 +1,6 @@
 import { src, dest, series } from "gulp";
 import { exec, ExecException } from "child_process";
 import path from "path";
-import os from "os";
 import through from "through2";
 // import replace from "gulp-replace";
 import _ from "lodash";
@@ -10,6 +9,7 @@ import chalk from "chalk";
 // import loadJsonFile from "load-json-file";
 import { TaskOptions } from "../libs/options";
 import Undertaker from "undertaker";
+import { isWindows } from "../utils";
 
 // const { options, distFolder } = require("./tools");
 // const { fileMap, productConfig } = require("./tools");
@@ -159,11 +159,8 @@ export function cliBuildNpm(
     const targetPath = path.resolve(process.cwd(), options.destDir);
     console.log(chalk.gray(`目标路径:${targetPath}`));
     const startTime = Date.now();
-    os.platform;
     return exec(
-      `${
-        os.platform() === "win32" ? "cli.bat" : "cli"
-      } build-npm --project "${targetPath}"`,
+      `${isWindows ? "cli.bat" : "cli"} build-npm --project "${targetPath}"`,
       { timeout: 60000 },
       (err) => {
         console.log(chalk.green(`cli 构建npm end ${Date.now() - startTime}ms`));
@@ -213,7 +210,7 @@ export function getBuildPackageTask(
     copyProjectConfigJson(options),
     copyPackageJson(options),
     installPackage(options),
-    cliBuildNpm(options),
+    // cliBuildNpm(options),
   ];
   console.log(`options.resolvedConfig.dev:${options.resolvedConfig.dev}`);
   if (options.resolvedConfig.command === "dev") {

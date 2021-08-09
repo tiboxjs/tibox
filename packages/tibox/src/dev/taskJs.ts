@@ -8,6 +8,7 @@ import changed from "gulp-changed";
 // import rename from "gulp-rename";
 import { TaskOptions } from "../libs/options";
 import { subComponents } from "./subComponents";
+import { isWindows } from "../utils";
 // const { subComponets /* , reverseHome */ } = require("./plugins");
 
 // const {
@@ -72,7 +73,13 @@ export default function jsTask(
             hasChanged: changed.compareLastModifiedTime,
           })
         )
-        .pipe(dest(path.dirname(`${options.destDir}/${filePath}`)))
+        .pipe(
+          dest(
+            isWindows
+              ? options.destDir
+              : path.dirname(`${options.destDir}/${filePath}`)
+          )
+        )
     );
   };
 }
