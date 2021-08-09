@@ -1,6 +1,7 @@
 import { src, dest } from "gulp";
 import changed from "gulp-changed";
 import path from "path";
+import { isWindows } from "../utils";
 import { TaskOptions } from "../libs/options";
 // import prune from "gulp-prune";
 // import debug from "gulp-debug";
@@ -75,7 +76,13 @@ export default function imageTask(
             hasChanged: changed.compareLastModifiedTime,
           })
         )
-        .pipe(dest(path.dirname(`${options.destDir}/${filePath}`)))
+        .pipe(
+          dest(
+            isWindows
+              ? options.destDir
+              : path.dirname(`${options.destDir}/${filePath}`)
+          )
+        )
     );
   };
 }

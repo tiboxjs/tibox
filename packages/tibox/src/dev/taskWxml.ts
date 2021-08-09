@@ -8,6 +8,7 @@ import changed from "gulp-changed";
 import { TaskOptions } from "../libs/options";
 import { subComponents } from "./subComponents";
 import path from "path";
+import { isWindows } from "../utils";
 // const { addWxs, subComponets, reverseHome } = require('./plugins')
 
 // const {
@@ -47,7 +48,13 @@ export default function wxmlTask(
             hasChanged: changed.compareLastModifiedTime,
           })
         )
-        .pipe(dest(path.dirname(`${options.destDir}/${filePath}`)))
+        .pipe(
+          dest(
+            isWindows
+              ? options.destDir
+              : path.dirname(`${options.destDir}/${filePath}`)
+          )
+        )
     );
   };
 }

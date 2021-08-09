@@ -1,6 +1,6 @@
 {
   "name": "@haoqimao/tibox-cli",
-  "version": "0.1.2",
+  "version": "0.1.8",
   "description": "tibox",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -17,7 +17,7 @@
     "prettier": "prettier --write \"src/**/*.ts\"",
     "commit:comment": "引导设置规范化的提交信息",
     "commit": "cz",
-    "pub": "yarn publish --registry=https://registry.npmjs.com"
+    "pub": "yarn build && yarn publish --registry=https://registry.npmjs.com"
   },
   "bin": {
     "tibox": "./bin/tibox.js"

@@ -9,6 +9,7 @@ import changed from "gulp-changed";
 // import jeditor from "gulp-json-editor"
 import { TaskOptions } from "../libs/options";
 import { subComponents } from "./subComponents";
+import { isWindows } from "../utils";
 // const { subComponets, reverseHome } = require('./plugins');
 // const { options, plugins, colorsKey, colorsMain } = require('./tools');
 
@@ -102,7 +103,13 @@ export default function jsonTask(
             hasChanged: changed.compareLastModifiedTime,
           })
         )
-        .pipe(dest(path.dirname(`${options.destDir}/${filePath}`)))
+        .pipe(
+          dest(
+            isWindows
+              ? options.destDir
+              : path.dirname(`${options.destDir}/${filePath}`)
+          )
+        )
     );
   };
 }

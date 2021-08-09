@@ -61,7 +61,7 @@ export function subComponents(
                 this.push(other);
               });
             }
-            callback();
+            callback(null);
           } else {
             callback(new Error("配置文件 不正确"));
           }

@@ -6,6 +6,7 @@ import { src, dest } from "gulp";
 import { TaskOptions } from "../libs/options";
 import { subComponents } from "./subComponents";
 import path from "path";
+import { isWindows } from "../utils";
 // const { subComponets, reverseHome } = require('./plugins')
 
 // const {
@@ -45,7 +46,13 @@ export default function wxssTask(
         //     hasChanged: changed.compareLastModifiedTime,
         //   })
         // )
-        .pipe(dest(path.dirname(`${options.destDir}/${filePath}`)))
+        .pipe(
+          dest(
+            isWindows
+              ? options.destDir
+              : path.dirname(`${options.destDir}/${filePath}`)
+          )
+        )
     );
   };
 }
