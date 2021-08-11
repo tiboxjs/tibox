@@ -6,6 +6,8 @@ import { BuildOptions } from "./build";
 import { DevOptions } from "./dev";
 import { createLogger, LogLevel } from "./logger";
 
+import { build, PluginBuild } from "esbuild";
+
 const cli = cac("tibox");
 interface GlobalCLIOptions {
   "--"?: string[];
@@ -113,7 +115,35 @@ cli
   .option("--desc <desc>", "指定一个版本描述")
   .action(async (root: string, options: UploadOptions & GlobalCLIOptions) => {
     // TODO: 未实现
-    console.log(root, options);
+    // console.log(root, options);
+
+    const envPlugin = {
+      name: "env",
+      setup(build: PluginBuild) {
+        console.log(chalk.yellow(`env plugin setup function`));
+        // Intercept import paths called "env" so esbuild doesn't attempt
+        // to map them to a file system location. Tag them with the "env-ns"
+        // namespace to reserve them for this plugin.
+        build.onResolve({ filter: /^env$/ }, (args) => ({
+          path: args.path,
+          namespace: "env-ns",
+        }));
+
+        // Load paths tagged with the "env-ns" namespace and behave as if
+        // they point to a JSON file containing the environment variables.
+        build.onLoad({ filter: /.*/, namespace: "env-ns" }, () => ({
+          contents: JSON.stringify(process.env),
+          loader: "json",
+        }));
+      },
+    };
+
+    await build({
+      entryPoints: ["src/app.js"],
+      outfile: "dist/app.js",
+      charset: "utf8",
+      plugins: [envPlugin],
+    });
   });
 
 cli.help();

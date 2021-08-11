@@ -26,6 +26,7 @@
     "node": ">=12.0.0"
   },
   "dependencies": {
+    "@nodelib/fs.scandir": "^2.1.5",
     "cac": "^6.7.3",
     "chalk": "^4.1.1",
     "chokidar": "^3.5.2",
