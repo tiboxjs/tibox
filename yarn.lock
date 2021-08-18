@@ -1645,10 +1645,17 @@ es6-weak-map@^2.0.1:
     es6-iterator "^2.0.3"
     es6-symbol "^3.1.1"
 
+<<<<<<< Updated upstream
 esbuild@^0.12.16:
   version "0.12.19"
   resolved "https://registry.nlark.com/esbuild/download/esbuild-0.12.19.tgz?cache=0&sync_timestamp=1628371805674&other_urls=https%3A%2F%2Fregistry.nlark.com%2Fesbuild%2Fdownload%2Fesbuild-0.12.19.tgz#ab849766705a5093df5acd8ec2f6ba2159a38a6c"
   integrity sha1-q4SXZnBaUJPfWs2Owva6IVmjimw=
+=======
+esbuild@^0.12.20:
+  version "0.12.20"
+  resolved "https://registry.nlark.com/esbuild/download/esbuild-0.12.20.tgz#4d3c9d83c99a4031e027b42a4c398c23b6827cb0"
+  integrity sha1-TTydg8maQDHgJ7QqTDmMI7aCfLA=
+>>>>>>> Stashed changes
 
 escalade@^3.1.1:
   version "3.1.1"

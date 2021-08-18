@@ -1,24 +1,29 @@
 // eslint-disable-next-line node/no-missing-import
 import { readdir } from "fs/promises";
 import { ResolvedConfig } from "../";
-import { TTask } from "../libs/task";
+// import { TTask } from "../libs/task";
 import path from "path";
 import fs from "fs-extra";
-import os from "os";
+// import os from "os";
 import { createLogger, LogLevel } from "../logger";
 import _ from "lodash";
 import chalk from "chalk";
-import loadJsonFile from "load-json-file";
+// import loadJsonFile from "load-json-file";
+import { RootTask } from "../task/rootTask";
+// import { MiniProgramPage } from "./page";
+// import { parseComponents } from "./component";
+// import { SubPackage } from "./subPackage";
 
 /**
  * 解析过后，返回给dev或者build的结果，供后续跟踪
  */
 export type ParseResult = {
-  fileList: TFile[];
-  mapTask: Record<string, TTask | Array<TTask>>;
+  // fileList: TFile[];
+  // mapTask: Record<string, TTask | Array<TTask>>;
+  rootTask: RootTask;
 };
 
-enum TFileType {
+export enum TFileType {
   appJs,
   appJson,
   appWxss,
@@ -36,85 +41,62 @@ enum TFileType {
   projectConfigJson,
   sitmapJson,
   image,
-  // 还有tailwind和svg文件
+  // TODO: 还有tailwind和svg文件
 }
 
 /**
  * tibox里的文件，防止名字冲突，在前面加了个T
  */
-export type TFile = {
+export interface TFile {
   type: TFileType;
   path: string;
-};
+}
 
-/**
- * 小程序app.json文件的subPackages字段中每一个item的类型定义
- */
-export type MiniProgramAppJsonSubPackage = {
-  root: string;
-  pages: string[];
-  usingComponents: Record<string, string>;
-};
+export class JsFile implements TFile {
+  public type: TFileType;
+  public path: string;
+  public content?: string;
 
-/**
- * 小程序app.json文件的文件内容
- */
-export type MiniProgramAppJson = {
-  pages: string[];
-  subPackages?: MiniProgramAppJsonSubPackage[];
-};
+  constructor(type: TFileType, path: string) {
+    this.type = type;
+    this.path = path;
+  }
 
-/**
- * 解析（parse）后的，小程序代码包结果
- */
-export type ParsedMiniProgramResult = {
-  appJson: MiniProgramAppJson;
+  public async loadContent(): Promise<void> {
+    this.content = await fs.promises.readFile(this.path, {
+      encoding: "utf-8",
+    });
+  }
+}
 
-  unusedFiles: TFile[];
-};
+export class JsonFile implements TFile {
+  public type: TFileType;
+  public path: string;
 
-/**
- * 本小程序的Page
- */
-export type MiniProgramPage = {
-  path: string;
-  jsFile?: MiniProgramPageJsFile;
-  jsonFile?: MiniProgramPageJsonFile;
-  wxmlFile: MiniProgramPageWxmlFile;
-  wxssFile?: MiniProgramPageWxssFile;
-};
+  constructor(type: TFileType, path: string) {
+    this.type = type;
+    this.path = path;
+  }
+}
+export class WxmlFile implements TFile {
+  public type: TFileType;
+  public path: string;
 
-/**
- * 小程序的Page的JS文件
- */
-export type MiniProgramPageJsFile = {
-  path: string;
-  importPaths?: string[];
-};
+  constructor(type: TFileType, path: string) {
+    this.type = type;
+    this.path = path;
+  }
+}
 
-/**
- * 小程序的Page的JSON文件
- */
-export type MiniProgramPageJsonFile = {
-  path: string;
-};
+export class WxssFile implements TFile {
+  public type: TFileType;
+  public path: string;
 
-/**
- * 小程序的Page的wxml文件
- */
-export type MiniProgramPageWxmlFile = {
-  path: string;
-  // TODO: wxml有import吗？
-  importPaths?: string[];
-};
-
-/**
- * 小程序的Page的wxss文件
- */
-export type MiniProgramPageWxssFile = {
-  path: string;
-  importPaths?: string[];
-};
+  constructor(type: TFileType, path: string) {
+    this.type = type;
+    this.path = path;
+  }
+}
 
 export async function parse(
   resolvedConfig: ResolvedConfig
@@ -154,9 +136,20 @@ async function doParse(resolvedConfig: ResolvedConfig): Promise<ParseResult> {
     path.relative(resolvedConfig.root, item)
   );
 
-  logger.info(chalk.blueBright(parseResult.join(os.EOL)));
+  const { rootTask } = await parseMiniProgram(resolvedConfig);
+  logger.info(chalk.black(`allFiles: ${parseResult.length}`));
+  logger.info(chalk.black(`allFiles: ${JSON.stringify(parseResult, null, 2)}`));
+  logger.info(chalk.green(`needRemoveFiles: ${rootTask.files().length}`));
+  logger.info(
+    chalk.black(`needRemoveFiles: ${JSON.stringify(rootTask.files(), null, 2)}`)
+  );
+  const unTrackedFiles = _.pull(parseResult, ...rootTask.files());
 
-  return await parseMiniProgram(path.resolve(resolvedConfig.root, "src/"));
+  logger.info(chalk.yellow(`unTrackedFiles: ${unTrackedFiles.length}`));
+  logger.info(
+    chalk.black(`unTrackedFiles: ${JSON.stringify(unTrackedFiles, null, 2)}`)
+  );
+  return { rootTask };
 }
 
 /**
@@ -194,69 +187,58 @@ async function parseDir(
   }
 }
 
-async function parseMiniProgram(srcPath: string): Promise<ParseResult> {
-  const appJsonFilePath = path.resolve(path.join(srcPath, "app.json"));
-  const appJson: MiniProgramAppJson = await loadJsonFile(appJsonFilePath);
-  const pages: MiniProgramPage[] = await Promise.all(
-    _.map(appJson.pages, (item) => parsePage(srcPath, item))
-  );
+/**
+ * 解析小程序目录结构
+ * @param srcPath src目录绝对路径
+ * @returns 解析结果
+ */
+async function parseMiniProgram(config: ResolvedConfig): Promise<ParseResult> {
+  // const appJsonFilePath = path.resolve(srcPath, "app.json");
+  // const appJson: MiniProgramAppConfig = await loadJsonFile(appJsonFilePath);
+  // // 解析主包下的pages
+  // const pages: MiniProgramPage[] = await Promise.all(
+  //   _.map(appJson.pages, (item) => parsePage(srcPath, item))
+  // );
 
-  _.forEach(pages, (item) => {
-    console.log(
-      chalk.green(
-        `小程序页面${item.path} [${item.jsFile?.path}] [${item.jsonFile?.path}] [${item.wxmlFile.path}] [${item.wxssFile?.path}]`
-      )
-    );
-  });
+  // const subPackages: SubPackage[] = _.map(
+  //   appJson.subPackages,
+  //   (subPackageItem) => {
+  //     const pages = _.map(subPackageItem.pages, (pageItem) => {
+  //       return new MiniProgramPage(pageItem, {
+  //         subPackagePath: subPackageItem.root,
+  //       });
+  //     });
+  //     return new SubPackage(subPackageItem.root, pages);
+  //   }
+  // );
+  // // 解析分包下的pages
+  // const subPackagesPagesObj = _.flatten(
+  //   _.map(appJson.subPackages, (subItem) => {
+  //     return _.map(subItem.pages, (pageItem) => {
+  //       return {
+  //         subPackage: subItem.root,
+  //         pagePath: pageItem,
+  //       };
+  //     });
+  //   })
+  // );
+  // const subPackagesPages = await Promise.all(
+  //   _.map(subPackagesPagesObj, (item) =>
+  //     parsePage(srcPath, item.pagePath, { subPackage: item.subPackage })
+  //   )
+  // );
+  // // 本小程序的全部页面都在allPages中
+  // const allPages = _.concat(pages, subPackagesPages);
 
+  // console.log(chalk.yellow(`小程序页面共${allPages.length}个`));
+
+  // parseComponents(appJson, allPages);
+
+  //===========
+  // const miniprogramApp: MiniProgramApp = new MiniProgramApp(srcPath);
+
+  const rootTask = new RootTask(config);
+  await rootTask.init();
   // TODO: 假代码
-  return { fileList: [], mapTask: {} };
-}
-
-async function parsePage(
-  srcPath: string,
-  pagePath: string,
-  options: { subPackage?: string } = {}
-): Promise<MiniProgramPage> {
-  const res: {
-    jsFile?: MiniProgramPageJsFile;
-    jsonFile?: MiniProgramPageJsonFile;
-    wxmlFile?: MiniProgramPageWxmlFile;
-    wxssFile?: MiniProgramPageWxssFile;
-    path: string;
-  } = { path: pagePath };
-  const [jsFilePath, jsonFilePath, wxmlFilePath, wxssFilePath] = _.map(
-    [".js", ".json", ".wxml", ".wxss"],
-    (item) => path.resolve(srcPath, `${pagePath}${item}`)
-  );
-
-  const [jsFileStat, jsonFileStat, wxmlFileStat, wxssFileStat] =
-    await Promise.all(
-      _.map([jsFilePath, jsonFilePath, wxmlFilePath, wxssFilePath], (item) =>
-        fs.promises.stat(item)
-      )
-    );
-
-  if (jsFileStat.isFile()) {
-    res.jsFile = {
-      path: path.relative(srcPath, jsFilePath),
-    };
-  }
-  if (jsonFileStat.isFile()) {
-    res.jsonFile = {
-      path: path.relative(srcPath, jsonFilePath),
-    };
-  }
-  if (!wxmlFileStat.isFile()) {
-    throw new Error(`The page ${pagePath}'s wxml file doesn't exists!`);
-  }
-  res.wxmlFile = {
-    path: path.relative(srcPath, wxmlFilePath),
-  };
-  if (wxssFileStat.isFile()) {
-    res.wxssFile = {
-      path: path.relative(srcPath, wxssFilePath),
-    };
-  }
-  return res as MiniProgramPage;
+  return { /* fileList: [], mapTask: {},  */ rootTask };
 }

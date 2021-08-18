@@ -1,8 +1,7 @@
 import { InlineConfig, resolveConfig } from "../config";
 // import chokidar from "chokidar";
-// import path from "path";
 // import { createLogger } from "../logger";
-// import chalk from "chalk";
+import chalk from "chalk";
 // import { parallel } from "gulp";
 // import wxmlTask from "./taskWxml";
 // import replace from "gulp-replace";
@@ -13,10 +12,9 @@ import { InlineConfig, resolveConfig } from "../config";
 // import jsTask from "./taskJs";
 // import imageTask from "./taskImage";
 import _ from "lodash";
-
-import { parse } from "../parse";
 // import { getBuildPackageTask } from "./init";
 // import extTask from "./ext";
+import { parse } from "../parse";
 
 export interface DevOptions {
   mock: boolean;
@@ -43,16 +41,23 @@ export async function dev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
   }
 }
 async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
+  // const logger = createLogger(inlineConfig.logLevel);
+  // // One-liner for current directory
+  // const root = inlineConfig.root || ".";
+  // // 不监听 package.json、tibox.config.js、.env.*
+  // const needWatches = [
+  //   "src/",
+  //   "project.config.json" /* , "tailwind.config.js", "tailwind/", "svg/" */,
+  // ];
+  // const resolvedPath = path.resolve(root, "src/");
+  // logger.info(chalk.green(`resolvedPath: ${resolvedPath}`));
+
   const config = await resolveConfig(
     inlineConfig,
     "dev",
     "default",
     "production"
   );
-
-  // const root = config.root;
-
-  await parse(config);
   // const taskOptions: TaskOptions = {
   //   destDir: config.determinedDestDir,
   //   resolvedConfig: config,
@@ -76,6 +81,26 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
   // ): Promise<void> {
   //   const extName = path.extname(ppath);
   //   const asyncTasks: Undertaker.Task[] = [];
+  // const root = config.root;
+  console.log(chalk.red(`doDev`));
+  const parseResult = await parse(config);
+  await parseResult.rootTask.handle();
+  // const taskOptions: TaskOptions = {
+  //   destDir: config.determinedDestDir,
+  //   resolvedConfig: config,
+  //   plugins: [
+  //     () => {
+  //       return replace(/\[\[\w+\]\]/g, (match) => {
+  //         const key = match.substring(2, match.length - 2);
+  //         return (
+  //           (typeof config.replacer === "function" && config.replacer(key)) ||
+  //           match
+  //         );
+  //       });
+  //     },
+  //     ...config.plugins,
+  //   ],
+  // };
 
   //   const options = taskOptions;
   //   const filePath = path.relative(
