@@ -19,6 +19,11 @@ export class ComponentTask extends Task {
   private componentPath: string;
   private belongsToSubPackages: Set<string> = new Set();
   private logger: Logger;
+  /**
+   *
+   * @param config 解析过后的Config
+   * @param componentPath 组件路径
+   */
   constructor(config: ResolvedConfig, componentPath: string) {
     super(config);
     this.componentPath = componentPath;

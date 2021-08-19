@@ -1,10 +1,16 @@
 import { ResolvedConfig } from "..";
-import { Task } from ".";
+import { InitOptions, OnRegistComponentCallback, Task } from ".";
 import _ from "lodash";
 import path from "path";
 import { dest, src } from "gulp";
 import { isWindows } from "../utils";
+import loadJsonFile from "load-json-file";
+import { createLogger } from "../logger";
+import chalk from "chalk";
 
+export type MiniProgramPageConfig = {
+  usingComponents?: Record<string, string>;
+};
 export class PageTask extends Task {
   private pagePath: string;
 
@@ -16,8 +22,55 @@ export class PageTask extends Task {
     this.subPackage = subPackage;
   }
 
-  public async init(): Promise<void> {
+  public async init(options?: InitOptions): Promise<void> {
     // TODO: 解析界面的js文件（找到依赖）、json文件(找到子组件)、wxml文件(找到import)、wxss文件(找到import)
+    const [, jsonFilePath]: string[] = this.fileList();
+    const pageJson: MiniProgramPageConfig = await loadJsonFile(
+      path.resolve(this.config.root, "src/", jsonFilePath)
+    );
+    if (pageJson.usingComponents) {
+      if (options && typeof options.onRegistComponentCallback === "function") {
+        const cb: OnRegistComponentCallback = options.onRegistComponentCallback;
+        await Promise.all(
+          _.map(pageJson.usingComponents, (componentPath) => {
+            let targetPath: string;
+            let ignore: boolean = false;
+            if (path.isAbsolute(componentPath)) {
+              targetPath = componentPath;
+            } else if (componentPath.startsWith(".")) {
+              createLogger().info(
+                chalk.yellow(
+                  `this.pagePath: ${
+                    this.pagePath
+                  }\ncomponentPath: ${componentPath}\npath.resolve(this.pagePath, componentPath): ${path.resolve(
+                    this.subPackage || "",
+                    path.dirname(this.pagePath),
+                    componentPath
+                  )}`
+                )
+              );
+              targetPath = path.relative(
+                this.config.root,
+                path.resolve(
+                  this.subPackage || "",
+                  path.dirname(this.pagePath),
+                  componentPath
+                )
+              );
+              createLogger().info(chalk.yellow(`targetPath: ${targetPath}`));
+            } else {
+              targetPath = "";
+              ignore = true;
+            }
+            if (ignore) {
+              return Promise.resolve();
+            } else {
+              return cb(targetPath);
+            }
+          })
+        );
+      }
+    }
   }
 
   public async handle(): Promise<void> {

@@ -1,4 +1,3 @@
-// import loadJsonFile from "load-json-file";
 import path from "path";
 import { TaskGroup } from ".";
 import { ResolvedConfig } from "..";
@@ -10,8 +9,6 @@ import loadJsonFile from "load-json-file";
 import { PageTask } from "./pageTask";
 import { ComponentTask } from "./componentTask";
 // import through2 from "through2";
-import { createLogger } from "../logger";
-import chalk from "chalk";
 // import { RootTask } from "./rootTask";
 
 export type SubPackagePath = string;
@@ -44,7 +41,17 @@ export class AppTask extends TaskGroup {
       (item) => new PageTask(this.config, item)
     );
 
-    await Promise.all(_.map(pageTasks, (item) => item.init()));
+    await Promise.all(
+      _.map(pageTasks, (item) =>
+        item.init({
+          onRegistComponentCallback: async (componentPath) => {
+            const componentTask = new ComponentTask(this.config, componentPath);
+            await componentTask.init();
+            this.addTask(componentTask);
+          },
+        })
+      )
+    );
     this.addTask(...pageTasks);
 
     // 解析分包下的pages
@@ -61,7 +68,17 @@ export class AppTask extends TaskGroup {
       []
     );
 
-    await Promise.all(_.map(subPackagesPageTask, (item) => item.init()));
+    await Promise.all(
+      _.map(subPackagesPageTask, (item) =>
+        item.init({
+          onRegistComponentCallback: async (componentPath) => {
+            const componentTask = new ComponentTask(this.config, componentPath);
+            await componentTask.init();
+            this.addTask(componentTask);
+          },
+        })
+      )
+    );
     this.addTask(...subPackagesPageTask);
 
     // 解析appjson中配置的components
@@ -76,15 +93,6 @@ export class AppTask extends TaskGroup {
 
   public async handle(): Promise<void> {
     const [jsFilePath, jsonFilePath, wxssFilePath] = this.fileList();
-    createLogger().info(
-      chalk.red(
-        `path:${path.resolve(
-          this.config.root,
-          this.config.determinedDestDir,
-          "app.js"
-        )}`
-      )
-    );
     src(jsFilePath).pipe(
       dest(
         isWindows

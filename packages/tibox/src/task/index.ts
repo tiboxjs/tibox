@@ -3,6 +3,14 @@
 import _ from "lodash";
 import { ResolvedConfig } from "../";
 
+export type InitOptions = {
+  onRegistComponentCallback?: OnRegistComponentCallback;
+};
+
+export type OnRegistComponentCallback = (
+  componentPath: string
+) => Promise<void>;
+
 // /**
 //  * 通过解析结果创建任务树
 //  */
@@ -17,7 +25,7 @@ export abstract class Task {
   /**
    * 任务的初始化，留给异步任务处理
    */
-  public abstract init(): Promise<void>;
+  public abstract init(options?: InitOptions): Promise<void>;
 
   /**
    * 任务的处理

@@ -139,10 +139,6 @@ async function doParse(resolvedConfig: ResolvedConfig): Promise<ParseResult> {
   const { rootTask } = await parseMiniProgram(resolvedConfig);
   logger.info(chalk.black(`allFiles: ${parseResult.length}`));
   logger.info(chalk.black(`allFiles: ${JSON.stringify(parseResult, null, 2)}`));
-  logger.info(chalk.green(`needRemoveFiles: ${rootTask.files().length}`));
-  logger.info(
-    chalk.black(`needRemoveFiles: ${JSON.stringify(rootTask.files(), null, 2)}`)
-  );
   const unTrackedFiles = _.pull(parseResult, ...rootTask.files());
 
   logger.info(chalk.yellow(`unTrackedFiles: ${unTrackedFiles.length}`));
