@@ -1,15 +1,16 @@
 import { ResolvedConfig } from "..";
-import { Task } from ".";
 import path from "path";
 import { dest, src } from "gulp";
 import { isWindows } from "../utils";
 import through from "through2";
+import { SingleTask } from "./task";
+import { ITaskManager } from ".";
 
-export class ProjectConfigTask extends Task {
-  constructor(config: ResolvedConfig) {
-    super(config);
+export class ProjectConfigTask extends SingleTask {
+  constructor(config: ResolvedConfig, filePath: string) {
+    super(config, filePath);
   }
-  public async init(): Promise<void> {
+  public async init(options: ITaskManager): Promise<void> {
     // TODO: 有无处理?
   }
   public async handle(): Promise<void> {
@@ -35,9 +36,6 @@ export class ProjectConfigTask extends Task {
               )
         )
       );
-  }
-  public files(): string[] {
-    return this.fileList();
   }
 
   private fileList(): string[] {

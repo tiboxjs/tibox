@@ -1,5 +1,4 @@
 import path from "path";
-import { TaskGroup } from ".";
 import { ResolvedConfig } from "..";
 import _ from "lodash";
 // import chalk from "chalk";
@@ -8,6 +7,8 @@ import { isWindows } from "../utils";
 import loadJsonFile from "load-json-file";
 import { PageTask } from "./pageTask";
 import { ComponentTask } from "./componentTask";
+import { MultiTask } from "./task";
+import { ITaskManager } from ".";
 // import through2 from "through2";
 // import { RootTask } from "./rootTask";
 
@@ -25,14 +26,18 @@ export type MiniProgramAppConfig = {
   usingComponents: Record<string, string>;
 };
 
-export class AppTask extends TaskGroup {
-  // private mainPageTasks: PageTask[] = []
-
+export class AppTask extends MultiTask {
   constructor(config: ResolvedConfig) {
     super(config);
   }
 
-  public async init(): Promise<void> {
+  public async init(options: ITaskManager): Promise<void> {
+    /* const [appJsTask, appJsonTask, appWxssTask] =  */ await Promise.all([
+      options.onRegistJsFileCallback(path.join("src/", "app.js")),
+      options.onRegistJsonFileCallback(path.join("src/", "app.json")),
+      options.onRegistWxssFileCallback(path.join("src/", "app.wxss")),
+    ]);
+
     const appJsonFilePath = path.resolve(this.config.root, "src/", "app.json");
     const appJson: MiniProgramAppConfig = await loadJsonFile(appJsonFilePath);
     // 解析主包下的pages
@@ -41,17 +46,7 @@ export class AppTask extends TaskGroup {
       (item) => new PageTask(this.config, item)
     );
 
-    await Promise.all(
-      _.map(pageTasks, (item) =>
-        item.init({
-          onRegistComponentCallback: async (componentPath) => {
-            const componentTask = new ComponentTask(this.config, componentPath);
-            await componentTask.init();
-            this.addTask(componentTask);
-          },
-        })
-      )
-    );
+    await Promise.all(_.map(pageTasks, (pageItem) => pageItem.init(options)));
     this.addTask(...pageTasks);
 
     // 解析分包下的pages
@@ -68,17 +63,7 @@ export class AppTask extends TaskGroup {
       []
     );
 
-    await Promise.all(
-      _.map(subPackagesPageTask, (item) =>
-        item.init({
-          onRegistComponentCallback: async (componentPath) => {
-            const componentTask = new ComponentTask(this.config, componentPath);
-            await componentTask.init();
-            this.addTask(componentTask);
-          },
-        })
-      )
-    );
+    await Promise.all(_.map(subPackagesPageTask, (item) => item.init(options)));
     this.addTask(...subPackagesPageTask);
 
     // 解析appjson中配置的components
@@ -87,7 +72,7 @@ export class AppTask extends TaskGroup {
       (item) => new ComponentTask(this.config, item)
     );
 
-    await Promise.all(_.map(componentsTasks, (item) => item.init()));
+    await Promise.all(_.map(componentsTasks, (item) => item.init(options)));
     this.addTask(...componentsTasks);
   }
 
@@ -120,6 +105,10 @@ export class AppTask extends TaskGroup {
 
   public override files(): string[] {
     return _.concat(super.files(), this.fileList());
+  }
+
+  public id(): string {
+    return "App()";
   }
 
   private fileList(): string[] {

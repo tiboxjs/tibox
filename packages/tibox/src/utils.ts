@@ -509,3 +509,15 @@ export function lookupFile(
 
 //   return { host, name }
 // }
+
+export async function matchImportJsFile(
+  filePath: string
+): Promise<RegExpMatchArray | null> {
+  const fileContent = await fs.promises.readFile(filePath, {
+    encoding: "utf-8",
+  });
+  const matchedResult = fileContent.match(
+    /(?<=^import .* from [\'\"]).*(?=[\'\"];?)/
+  );
+  return matchedResult;
+}

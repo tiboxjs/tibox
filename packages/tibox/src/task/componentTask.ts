@@ -1,16 +1,17 @@
 import { ResolvedConfig } from "..";
-import { Task } from ".";
 import _ from "lodash";
 import path from "path";
 import { isWindows } from "../utils";
 import { src, dest } from "gulp";
 import chalk from "chalk";
 import { createLogger, Logger } from "../logger";
+import { MultiTask } from "./task";
+import { ITaskManager } from ".";
 
 /**
  * 组件任务，专门处理组件
  */
-export class ComponentTask extends Task {
+export class ComponentTask extends MultiTask {
   /**
    * 组件的路径，采用相对路径，不包括"src/"前缀。
    *
@@ -49,8 +50,24 @@ export class ComponentTask extends Task {
     return this.belongsToSubPackages.delete(subPackage);
   }
 
-  public async init(): Promise<void> {
-    // TODO: 未填写逻辑
+  public async init(options: ITaskManager): Promise<void> {
+    if (/^@/.test(this.componentPath)) {
+      createLogger().info(`Component [${this.componentPath}] ignore`);
+    }
+    await Promise.all([
+      options.onRegistJsFileCallback(
+        path.join("src/", `${this.componentPath}.js`)
+      ),
+      options.onRegistJsonFileCallback(
+        path.join("src/", `${this.componentPath}.json`)
+      ),
+      options.onRegistWxmlFileCallback(
+        path.join("src/", `${this.componentPath}.wxml`)
+      ),
+      options.onRegistWxssFileCallback(
+        path.join("src/", `${this.componentPath}.wxss`)
+      ),
+    ]);
   }
 
   public async handle(): Promise<void> {
@@ -90,8 +107,8 @@ export class ComponentTask extends Task {
     );
   }
 
-  public files(): string[] {
-    return _.map(this.fileList(), (item) => path.normalize(`src/${item}`));
+  public id(): string {
+    return `Component(${this.componentPath})`;
   }
 
   private fileList(): string[] {

@@ -84,7 +84,7 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
   // const root = config.root;
   console.log(chalk.red(`doDev`));
   const parseResult = await parse(config);
-  await parseResult.rootTask.handle();
+  await parseResult.taskManager.handle();
   // const taskOptions: TaskOptions = {
   //   destDir: config.determinedDestDir,
   //   resolvedConfig: config,

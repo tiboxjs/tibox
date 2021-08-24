@@ -9,7 +9,7 @@ import { createLogger, LogLevel } from "../logger";
 import _ from "lodash";
 import chalk from "chalk";
 // import loadJsonFile from "load-json-file";
-import { RootTask } from "../task/rootTask";
+import { TaskManager } from "../task/taskManager";
 // import { MiniProgramPage } from "./page";
 // import { parseComponents } from "./component";
 // import { SubPackage } from "./subPackage";
@@ -20,7 +20,7 @@ import { RootTask } from "../task/rootTask";
 export type ParseResult = {
   // fileList: TFile[];
   // mapTask: Record<string, TTask | Array<TTask>>;
-  rootTask: RootTask;
+  taskManager: TaskManager;
 };
 
 export enum TFileType {
@@ -136,16 +136,20 @@ async function doParse(resolvedConfig: ResolvedConfig): Promise<ParseResult> {
     path.relative(resolvedConfig.root, item)
   );
 
-  const { rootTask } = await parseMiniProgram(resolvedConfig);
-  logger.info(chalk.black(`allFiles: ${parseResult.length}`));
-  logger.info(chalk.black(`allFiles: ${JSON.stringify(parseResult, null, 2)}`));
-  const unTrackedFiles = _.pull(parseResult, ...rootTask.files());
-
-  logger.info(chalk.yellow(`unTrackedFiles: ${unTrackedFiles.length}`));
+  const { taskManager } = await parseMiniProgram(resolvedConfig);
+  logger.info(chalk.blueBright(`allFiles: ${parseResult.length}`));
   logger.info(
-    chalk.black(`unTrackedFiles: ${JSON.stringify(unTrackedFiles, null, 2)}`)
+    chalk.blueBright(`allFiles: ${JSON.stringify(parseResult, null, 2)}`)
   );
-  return { rootTask };
+  const unTrackedFiles = _.pull(parseResult, ...taskManager.files());
+
+  if (unTrackedFiles.length) {
+    logger.info(chalk.green(`unTrackedFiles: ${unTrackedFiles.length}`));
+    logger.info(
+      chalk.green(`unTrackedFiles: ${JSON.stringify(unTrackedFiles, null, 2)}`)
+    );
+  }
+  return { taskManager };
 }
 
 /**
@@ -233,8 +237,8 @@ async function parseMiniProgram(config: ResolvedConfig): Promise<ParseResult> {
   //===========
   // const miniprogramApp: MiniProgramApp = new MiniProgramApp(srcPath);
 
-  const rootTask = new RootTask(config);
+  const rootTask = new TaskManager(config);
   await rootTask.init();
   // TODO: 假代码
-  return { /* fileList: [], mapTask: {},  */ rootTask };
+  return { /* fileList: [], mapTask: {},  */ taskManager: rootTask };
 }
