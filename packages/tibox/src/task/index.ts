@@ -1,12 +1,13 @@
 // class TTask {}
 
-import { ComponentTask } from "./componentTask";
-import { JsonTask } from "./jsonTask";
-import { JsTask } from "./jsTask";
-import { PageTask } from "./pageTask";
+import { ComponentTask } from "./tasks/componentTask";
+import { JsonTask } from "./tasks/jsonTask";
+import { JsTask } from "./tasks/jsTask";
+import { PageTask } from "./tasks/pageTask";
 import { Task } from "./task";
-import { WxmlTask } from "./wxmlTask";
-import { WxssTask } from "./wxssTask";
+import { WxmlTask } from "./tasks/wxmlTask";
+import { WxssTask } from "./tasks/wxssTask";
+import { ImageTask } from "./tasks/imageTask";
 
 export type OnRegistPageCallback = (pagePath: string) => Promise<PageTask>;
 
@@ -24,6 +25,10 @@ export type OnRegistWxmlFileCallback = (
 export type OnRegistWxssFileCallback = (
   wxssFilePath: string
 ) => Promise<WxssTask>;
+export type OnRegistImageFileCallback = (
+  imageFilePath: string
+) => Promise<ImageTask>;
+
 // /**
 //  * 通过解析结果创建任务树
 //  */
@@ -37,4 +42,5 @@ export interface ITaskManager {
   onRegistJsonFileCallback: OnRegistJsonFileCallback;
   onRegistWxmlFileCallback: OnRegistWxmlFileCallback;
   onRegistWxssFileCallback: OnRegistWxssFileCallback;
+  onRegistImageFileCallback: OnRegistImageFileCallback;
 }

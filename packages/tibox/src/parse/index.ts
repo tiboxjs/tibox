@@ -1,15 +1,15 @@
 // eslint-disable-next-line node/no-missing-import
-import { readdir } from "fs/promises";
 import { ResolvedConfig } from "../";
 // import { TTask } from "../libs/task";
 import path from "path";
 import fs from "fs-extra";
 // import os from "os";
-import { createLogger, LogLevel } from "../logger";
+import { createLogger } from "../logger";
 import _ from "lodash";
 import chalk from "chalk";
 // import loadJsonFile from "load-json-file";
 import { TaskManager } from "../task/taskManager";
+import { parseDir } from "../utils";
 // import { MiniProgramPage } from "./page";
 // import { parseComponents } from "./component";
 // import { SubPackage } from "./subPackage";
@@ -111,6 +111,9 @@ export async function parse(
 async function doParse(resolvedConfig: ResolvedConfig): Promise<ParseResult> {
   const logger = createLogger(resolvedConfig.logLevel);
   // inlineConfig.root
+  /**
+   * 项目下需要监听的所有文件
+   */
   const needWatches = [
     "src/",
     "project.config.json",
@@ -122,6 +125,9 @@ async function doParse(resolvedConfig: ResolvedConfig): Promise<ParseResult> {
 
   const ignoreFiles: RegExp = /\.DS_Store/;
 
+  /**
+   * 解析结果
+   */
   let parseResult: string[] = [];
   for (const item of _.map(needWatches, (item) =>
     path.resolve(resolvedConfig.root, item)
@@ -141,7 +147,10 @@ async function doParse(resolvedConfig: ResolvedConfig): Promise<ParseResult> {
   logger.info(
     chalk.blueBright(`allFiles: ${JSON.stringify(parseResult, null, 2)}`)
   );
-  const unTrackedFiles = _.pull(parseResult, ...taskManager.files());
+  const unTrackedFiles = _.pull(
+    parseResult,
+    ..._.map(taskManager.files(), (item) => path.join("src", item))
+  );
 
   if (unTrackedFiles.length) {
     logger.info(chalk.green(`unTrackedFiles: ${unTrackedFiles.length}`));
@@ -150,41 +159,6 @@ async function doParse(resolvedConfig: ResolvedConfig): Promise<ParseResult> {
     );
   }
   return { taskManager };
-}
-
-/**
- * 解析目录下的文件
- * @param pathDir
- * @param options
- */
-async function parseDir(
-  pathDir: string,
-  options: { recursive?: boolean; logLevel?: LogLevel } = {}
-): Promise<string[]> {
-  const { recursive /* , logLevel */ } = options;
-  // const logger = createLogger(logLevel);
-  if (!path.isAbsolute(pathDir)) {
-    throw Error(`${pathDir} is not a absolute path!`);
-  }
-
-  const stat = await fs.stat(pathDir);
-  if (stat.isFile()) {
-    return [path.resolve(pathDir)];
-  } else {
-    const readDirResult = await readdir(pathDir);
-    if (recursive) {
-      let result: string[] = [];
-      for (const item of readDirResult) {
-        result = _.concat(
-          result,
-          await parseDir(path.resolve(pathDir, item), { recursive })
-        );
-      }
-      return result;
-    } else {
-      return readDirResult;
-    }
-  }
 }
 
 /**

@@ -286,8 +286,6 @@ export async function resolveConfig(
   //   });
   // }
 
-  // TODO Deprecation warnings - remove when out of beta
-
   // const logDeprecationWarning = (
   //   deprecatedOption: string,
   //   hint: string,

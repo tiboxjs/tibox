@@ -2,15 +2,21 @@ import _ from "lodash";
 import { ITaskManager } from ".";
 
 import { ResolvedConfig } from "..";
-import { AppTask } from "./appTask";
-import { ComponentTask } from "./componentTask";
-import { JsonTask } from "./jsonTask";
-import { JsTask } from "./jsTask";
-import { PageTask } from "./pageTask";
-import { ProjectConfigTask } from "./projectConfigTask";
+import { AppTask } from "./tasks/appTask";
+import { ComponentTask } from "./tasks/componentTask";
+import { ImageTask } from "./tasks/imageTask";
+import { JsonTask } from "./tasks/jsonTask";
+import { JsTask } from "./tasks/jsTask";
+import { PageTask } from "./tasks/pageTask";
+import { ProjectConfigTask } from "./tasks/projectConfigTask";
 import { Task } from "./task";
-import { WxmlTask } from "./wxmlTask";
-import { WxssTask } from "./wxssTask";
+import { WxmlTask } from "./tasks/wxmlTask";
+import { WxssTask } from "./tasks/wxssTask";
+import { PackageJsonTask } from "./tasks/packageJsonTask";
+import path from "path";
+import { absolute2Relative } from "../utils";
+import { createLogger } from "../logger";
+import chalk from "chalk";
 
 /**
  * 根节点任务
@@ -24,6 +30,10 @@ export class TaskManager implements ITaskManager {
   }
 
   public async onRegistPageCallback(pagePath: string): Promise<PageTask> {
+    createLogger().info(chalk.yellow(`onRegistPageCallback: ${pagePath}`));
+    if (path.isAbsolute(pagePath)) {
+      pagePath = absolute2Relative(this.config.root, pagePath);
+    }
     let pageTask = new PageTask(this.config, pagePath);
 
     const findResult = _.find(
@@ -43,6 +53,12 @@ export class TaskManager implements ITaskManager {
   public async onRegistComponentCallback(
     componentPath: string
   ): Promise<ComponentTask> {
+    createLogger().info(
+      chalk.yellow(`onRegistComponentCallback: ${componentPath}`)
+    );
+    if (path.isAbsolute(componentPath)) {
+      componentPath = absolute2Relative(this.config.root, componentPath);
+    }
     let componentTask = new ComponentTask(this.config, componentPath);
 
     const findResult = _.find(
@@ -60,6 +76,7 @@ export class TaskManager implements ITaskManager {
   }
 
   public async onRegistJsFileCallback(jsFilePath: string): Promise<JsTask> {
+    createLogger().info(chalk.yellow(`onRegistJsFileCallback: ${jsFilePath}`));
     let jsTask = new JsTask(this.config, jsFilePath);
 
     const findResult = _.find(
@@ -79,6 +96,9 @@ export class TaskManager implements ITaskManager {
   public async onRegistJsonFileCallback(
     jsonFilePath: string
   ): Promise<JsonTask> {
+    createLogger().info(
+      chalk.yellow(`onRegistJsonFileCallback: ${jsonFilePath}`)
+    );
     let jsonTask = new JsonTask(this.config, jsonFilePath);
 
     const findResult = _.find(
@@ -98,6 +118,9 @@ export class TaskManager implements ITaskManager {
   public async onRegistWxmlFileCallback(
     wxmlFilePath: string
   ): Promise<WxmlTask> {
+    createLogger().info(
+      chalk.yellow(`onRegistWxmlFileCallback: ${wxmlFilePath}`)
+    );
     let wxmlTask = new WxmlTask(this.config, wxmlFilePath);
 
     const findResult = _.find(
@@ -115,6 +138,7 @@ export class TaskManager implements ITaskManager {
   }
 
   public async onRegistWxssFileCallback(wxssPath: string): Promise<WxssTask> {
+    createLogger().info(chalk.yellow(`onRegistWxssFileCallback: ${wxssPath}`));
     let wxssTask = new WxssTask(this.config, wxssPath);
 
     const findResult = _.find(
@@ -129,6 +153,28 @@ export class TaskManager implements ITaskManager {
     }
 
     return wxssTask;
+  }
+
+  public async onRegistImageFileCallback(
+    imageFilePath: string
+  ): Promise<ImageTask> {
+    createLogger().info(
+      chalk.yellow(`onRegistImageFileCallback: ${imageFilePath}`)
+    );
+    let imageTask = new ImageTask(this.config, imageFilePath);
+
+    const findResult = _.find(
+      this.wholeTask,
+      (item) => item.id() === imageTask.id()
+    );
+    if (findResult) {
+      imageTask = findResult as ImageTask;
+    } else {
+      await imageTask.init(this);
+      this.wholeTask.push(imageTask);
+    }
+
+    return imageTask;
   }
   /**
    * 初始化任务
@@ -145,6 +191,10 @@ export class TaskManager implements ITaskManager {
     );
     await projectConfigTask.init(this);
     this.wholeTask.push(projectConfigTask);
+
+    const packageJsonTask = new PackageJsonTask(this.config, "package.json");
+    await packageJsonTask.init(this);
+    this.wholeTask.push(packageJsonTask);
   }
 
   public async handle(): Promise<void> {

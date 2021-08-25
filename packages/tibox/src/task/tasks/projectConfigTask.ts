@@ -1,17 +1,17 @@
-import { ResolvedConfig } from "..";
+import { ResolvedConfig } from "../..";
 import path from "path";
 import { dest, src } from "gulp";
-import { isWindows } from "../utils";
+import { isWindows } from "../../utils";
 import through from "through2";
-import { SingleTask } from "./task";
-import { ITaskManager } from ".";
+import { SingleTask } from "../task";
+import { ITaskManager } from "..";
 
 export class ProjectConfigTask extends SingleTask {
   constructor(config: ResolvedConfig, filePath: string) {
     super(config, filePath);
   }
   public async init(options: ITaskManager): Promise<void> {
-    // TODO: 有无处理?
+    //
   }
   public async handle(): Promise<void> {
     const [configJsonFile] = this.fileList();

@@ -1,8 +1,11 @@
 import debug from "debug";
 // import chalk from 'chalk'
-import fs from "fs";
+import { readdir } from "fs/promises";
+import fs from "fs-extra";
 import os from "os";
 import path from "path";
+import { LogLevel } from "./logger";
+import _ from "lodash";
 // import { pathToFileURL, URL } from 'url'
 // import { FS_PREFIX, DEFAULT_EXTENSIONS, VALID_ID_PREFIX } from './constants'
 // import resolve from 'resolve'
@@ -513,6 +516,9 @@ export function lookupFile(
 export async function matchImportJsFile(
   filePath: string
 ): Promise<RegExpMatchArray | null> {
+  if (!path.isAbsolute(filePath)) {
+    throw new Error(`The parameter filePath(${filePath}) is not absolute path`);
+  }
   const fileContent = await fs.promises.readFile(filePath, {
     encoding: "utf-8",
   });
@@ -520,4 +526,93 @@ export async function matchImportJsFile(
     /(?<=^import .* from [\'\"]).*(?=[\'\"];?)/
   );
   return matchedResult;
+}
+
+export async function matchImportWxmlFile(
+  filePath: string
+): Promise<RegExpMatchArray | null> {
+  if (!path.isAbsolute(filePath)) {
+    throw new Error(`The parameter filePath(${filePath}) is not absolute path`);
+  }
+  const fileContent = await fs.promises.readFile(filePath, {
+    encoding: "utf-8",
+  });
+  const matchedResult = fileContent.match(
+    /(?<=^ *\<import *src *\= *[\'\"]).*(?=[\'\"] *[\/\>|\> *(\<\/import\>)])/
+  );
+  return matchedResult;
+}
+
+export async function matchImportWxssFile(
+  filePath: string
+): Promise<RegExpMatchArray | null> {
+  if (!path.isAbsolute(filePath)) {
+    throw new Error(`The parameter filePath(${filePath}) is not absolute path`);
+  }
+  const fileContent = await fs.promises.readFile(filePath, {
+    encoding: "utf-8",
+  });
+  const matchedResult = fileContent.match(
+    /(?<=^@import *[\'\"]).*(?=[\'\"];?)/
+  );
+  return matchedResult;
+}
+
+/**
+ * 根据文件名判断是否为图片文件
+ * @param filePath 文件路径 ex: src/images/hello.png
+ * @returns true 如果是图片文件
+ */
+export function isImage(filePath: string): boolean {
+  return /\.(png|jpg|svg)$/.test(filePath);
+}
+
+/**
+ * 解析目录下的文件
+ * @param pathDir
+ * @param options
+ */
+export async function parseDir(
+  pathDir: string,
+  options: { recursive?: boolean; logLevel?: LogLevel } = {}
+): Promise<string[]> {
+  const { recursive /* , logLevel */ } = options;
+  // const logger = createLogger(logLevel);
+  if (!path.isAbsolute(pathDir)) {
+    throw Error(`${pathDir} is not a absolute path!`);
+  }
+
+  const stat = await fs.stat(pathDir);
+  if (stat.isFile()) {
+    return [path.resolve(pathDir)];
+  } else {
+    const readDirResult = await readdir(pathDir);
+    if (recursive) {
+      let result: string[] = [];
+      for (const item of readDirResult) {
+        result = _.concat(
+          result,
+          await parseDir(path.resolve(pathDir, item), { recursive })
+        );
+      }
+      return result;
+    } else {
+      return readDirResult;
+    }
+  }
+}
+
+/**
+ * 针对小程序中，某些路径的配置，有点形似绝对路径（实际不是，实际是相对src/的路径），通过此方法转换
+ *
+ * 例如，转换前为 "/components/tbc-example/tbc-example"， 转换后为"components/tbc-example/tbc-example"
+ * @param root 项目根路径
+ * @param filePath 目标文件
+ * @returns 相对项目根目录的路径
+ */
+export function absolute2Relative(root: string, filePath: string): string {
+  return path.relative(
+    path.resolve(root, "src/"),
+    path.normalize(`src/${filePath}`)
+  );
 }
