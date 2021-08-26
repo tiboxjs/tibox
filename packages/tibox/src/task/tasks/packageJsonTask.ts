@@ -22,8 +22,6 @@ export class PackageJsonTask extends SingleTask {
         )
       )
       .on("finish", () => {
-        // eslint-disable-next-line prefer-rest-params
-        createLogger().info(`finish ${JSON.stringify(arguments, null, 2)}`);
         const yarnCMDOptions = [
           "--prefer-offline",
           "--registry=http://registry.npm.manwei.com",

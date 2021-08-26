@@ -92,40 +92,7 @@ export class ComponentTask extends MultiTask {
   }
 
   public async handle(): Promise<void> {
-    // if (/^@/.test(this.componentPath)) {
-    //   this.logger.info(chalk.green(`跳过 组件[${this.componentPath}]的处理`));
-    //   return;
-    // }
-    // const [jsFilePath, jsonFilePath, wxmlFilePath, wxssFilePath]: string[] =
-    //   this.fileList();
-    // src(`src/${jsFilePath}`).pipe(
-    //   dest(
-    //     isWindows
-    //       ? this.config.determinedDestDir
-    //       : path.dirname(`${this.config.determinedDestDir}/${jsFilePath}`)
-    //   )
-    // );
-    // src(`src/${jsonFilePath}`).pipe(
-    //   dest(
-    //     isWindows
-    //       ? this.config.determinedDestDir
-    //       : path.dirname(`${this.config.determinedDestDir}/${jsonFilePath}`)
-    //   )
-    // );
-    // src(`src/${wxmlFilePath}`).pipe(
-    //   dest(
-    //     isWindows
-    //       ? this.config.determinedDestDir
-    //       : path.dirname(`${this.config.determinedDestDir}/${wxmlFilePath}`)
-    //   )
-    // );
-    // src(`src/${wxssFilePath}`).pipe(
-    //   dest(
-    //     isWindows
-    //       ? this.config.determinedDestDir
-    //       : path.dirname(`${this.config.determinedDestDir}/${wxssFilePath}`)
-    //   )
-    // );
+    //
   }
 
   public id(): string {

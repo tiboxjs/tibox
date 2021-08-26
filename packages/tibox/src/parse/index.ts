@@ -146,6 +146,11 @@ async function doParse(resolvedConfig: ResolvedConfig): Promise<ParseResult> {
   logger.info(chalk.blueBright(`allFiles: ${parseResult.length}`));
   const unTrackedFiles = _.pull(parseResult, ...taskManager.files());
 
+  const trackedFiles = taskManager.files();
+  logger.info(
+    chalk.blueBright(`trackedFiles: ${JSON.stringify(trackedFiles, null, 2)}`)
+  );
+
   if (unTrackedFiles.length) {
     logger.info(chalk.green(`unTrackedFiles: ${unTrackedFiles.length}`));
     logger.info(

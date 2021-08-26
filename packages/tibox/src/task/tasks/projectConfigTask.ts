@@ -38,6 +38,10 @@ export class ProjectConfigTask extends SingleTask {
       );
   }
 
+  public override files(): string[] {
+    return this.fileList();
+  }
+
   private fileList(): string[] {
     return ["project.config.json"];
   }
