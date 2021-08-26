@@ -1,4 +1,5 @@
 import _ from "lodash";
+import path from "path";
 import { ITaskManager } from ".";
 import { ResolvedConfig } from "..";
 
@@ -86,7 +87,7 @@ export abstract class SingleTask implements Task {
   }
 
   public files(): string[] {
-    return [this.filePath];
+    return [path.join("src", this.filePath)];
   }
 
   public seek(this: SingleTask, filePath: string): SingleTask | void {

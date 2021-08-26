@@ -523,7 +523,7 @@ export async function matchImportJsFile(
     encoding: "utf-8",
   });
   const matchedResult = fileContent.match(
-    /(?<=^import .* from [\'\"]).*(?=[\'\"];?)/
+    /(?<=^(import (.* from )?|.*require\()[\'\"]).*(?=[\'\"]\)?;?)/gm
   );
   return matchedResult;
 }
@@ -538,7 +538,7 @@ export async function matchImportWxmlFile(
     encoding: "utf-8",
   });
   const matchedResult = fileContent.match(
-    /(?<=^ *\<import *src *\= *[\'\"]).*(?=[\'\"] *[\/\>|\> *(\<\/import\>)])/
+    /(?<=^ *\<import *src *\= *[\'\"]).*(?=[\'\"] *[\/\>|\> *(\<\/import\>)])/gm
   );
   return matchedResult;
 }
@@ -553,7 +553,7 @@ export async function matchImportWxssFile(
     encoding: "utf-8",
   });
   const matchedResult = fileContent.match(
-    /(?<=^@import *[\'\"]).*(?=[\'\"];?)/
+    /(?<=^@import *[\'\"]).*(?=[\'\"];?)/gm
   );
   return matchedResult;
 }

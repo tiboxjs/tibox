@@ -1,13 +1,12 @@
 import { dest, src } from "gulp";
 import path from "path";
-import { createLogger } from "../../logger";
 import { ITaskManager } from "..";
 import { isWindows } from "../../utils";
 import { SingleTask } from "../task";
 
 export class ImageTask extends SingleTask {
   public async init(options: ITaskManager): Promise<void> {
-    createLogger().info(`ImageTask: ${this.filePath}`);
+    //
   }
   public async handle(): Promise<void> {
     src(path.join("src", this.filePath)).pipe(

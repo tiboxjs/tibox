@@ -4,8 +4,6 @@ import _ from "lodash";
 import path from "path";
 import { absolute2Relative } from "../../utils";
 import loadJsonFile from "load-json-file";
-import { createLogger } from "../../logger";
-import chalk from "chalk";
 import { MultiTask } from "../task";
 
 export type MiniProgramPageConfig = {
@@ -29,7 +27,7 @@ export class PageTask extends MultiTask {
 
     const [, jsonFilePath]: string[] = this.fileList();
     const pageJson: MiniProgramPageConfig = await loadJsonFile(
-      path.resolve(this.config.root, "src/", jsonFilePath)
+      path.resolve(this.config.root, jsonFilePath)
     );
     if (pageJson.usingComponents) {
       await Promise.all(
@@ -42,7 +40,6 @@ export class PageTask extends MultiTask {
               this.config.root,
               path.resolve(path.dirname(this.pagePath), componentPath)
             );
-            createLogger().info(chalk.yellow(`targetPath: ${targetPath}`));
           } else {
             targetPath = componentPath;
           }
@@ -61,9 +58,8 @@ export class PageTask extends MultiTask {
   }
 
   private fileList(): string[] {
-    return _.map(
-      ["js", "json", "wxml", "wxss"],
-      (item) => `${this.pagePath}.${item}`
+    return _.map(["js", "json", "wxml", "wxss"], (item) =>
+      path.join("src", `${this.pagePath}.${item}`)
     );
   }
 }

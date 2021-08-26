@@ -30,7 +30,7 @@ export class TaskManager implements ITaskManager {
   }
 
   public async onRegistPageCallback(pagePath: string): Promise<PageTask> {
-    createLogger().info(chalk.yellow(`onRegistPageCallback: ${pagePath}`));
+    createLogger().info(chalk.grey(`onRegistPageCallback: ${pagePath}`));
     if (path.isAbsolute(pagePath)) {
       pagePath = absolute2Relative(this.config.root, pagePath);
     }
@@ -54,7 +54,7 @@ export class TaskManager implements ITaskManager {
     componentPath: string
   ): Promise<ComponentTask> {
     createLogger().info(
-      chalk.yellow(`onRegistComponentCallback: ${componentPath}`)
+      chalk.grey(`onRegistComponentCallback: ${componentPath}`)
     );
     if (path.isAbsolute(componentPath)) {
       componentPath = absolute2Relative(this.config.root, componentPath);
@@ -76,7 +76,7 @@ export class TaskManager implements ITaskManager {
   }
 
   public async onRegistJsFileCallback(jsFilePath: string): Promise<JsTask> {
-    createLogger().info(chalk.yellow(`onRegistJsFileCallback: ${jsFilePath}`));
+    createLogger().info(chalk.grey(`onRegistJsFileCallback: ${jsFilePath}`));
     let jsTask = new JsTask(this.config, jsFilePath);
 
     const findResult = _.find(
@@ -97,7 +97,7 @@ export class TaskManager implements ITaskManager {
     jsonFilePath: string
   ): Promise<JsonTask> {
     createLogger().info(
-      chalk.yellow(`onRegistJsonFileCallback: ${jsonFilePath}`)
+      chalk.grey(`onRegistJsonFileCallback: ${jsonFilePath}`)
     );
     let jsonTask = new JsonTask(this.config, jsonFilePath);
 
@@ -119,7 +119,7 @@ export class TaskManager implements ITaskManager {
     wxmlFilePath: string
   ): Promise<WxmlTask> {
     createLogger().info(
-      chalk.yellow(`onRegistWxmlFileCallback: ${wxmlFilePath}`)
+      chalk.grey(`onRegistWxmlFileCallback: ${wxmlFilePath}`)
     );
     let wxmlTask = new WxmlTask(this.config, wxmlFilePath);
 
@@ -138,7 +138,7 @@ export class TaskManager implements ITaskManager {
   }
 
   public async onRegistWxssFileCallback(wxssPath: string): Promise<WxssTask> {
-    createLogger().info(chalk.yellow(`onRegistWxssFileCallback: ${wxssPath}`));
+    createLogger().info(chalk.grey(`onRegistWxssFileCallback: ${wxssPath}`));
     let wxssTask = new WxssTask(this.config, wxssPath);
 
     const findResult = _.find(
@@ -159,7 +159,7 @@ export class TaskManager implements ITaskManager {
     imageFilePath: string
   ): Promise<ImageTask> {
     createLogger().info(
-      chalk.yellow(`onRegistImageFileCallback: ${imageFilePath}`)
+      chalk.grey(`onRegistImageFileCallback: ${imageFilePath}`)
     );
     let imageTask = new ImageTask(this.config, imageFilePath);
 

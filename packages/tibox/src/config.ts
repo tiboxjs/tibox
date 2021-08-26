@@ -20,6 +20,7 @@ import { DevOptions } from "./dev";
 import { parseDestFolderName, parseProjectName } from "./libs/tools";
 import loadJsonFile from "load-json-file";
 import { LogLevel } from "./logger";
+import _ from "lodash";
 
 // import { CLIENT_DIR, DEFAULT_ASSETS_RE } from './constants'
 export interface ConfigEnv {
@@ -93,6 +94,9 @@ export type gulpHandletype = {
   ) => handleDistResult[] | handleDistResult;
 };
 
+/**
+ * 解析完成后的配置
+ */
 export type ResolvedConfig = Readonly<
   Omit<
     UserConfig,
@@ -105,11 +109,22 @@ export type ResolvedConfig = Readonly<
     // base: string;
     // publicDir: string
     command: "build" | "dev";
+    dependencies: Record<string, string>;
+    isDependencies: (name: string) => boolean;
     project: string;
     product: string;
     appid: string;
+    /**
+     * 最终的项目名称
+     */
     determinedProjectName: string;
+    /**
+     * 最终的dispatch目录
+     */
     determinedDestDir: string;
+    /**
+     * development、staging、production或其他的
+     */
     mode: string;
     isProduction: boolean;
     env: Record<string, any>;
@@ -129,6 +144,7 @@ export type ResolvedConfig = Readonly<
 
 type PackageJson = {
   version: string;
+  dependencies: Record<string, string>;
 };
 
 export async function resolveConfig(
@@ -227,6 +243,13 @@ export async function resolveConfig(
     // publicDir: resolvedPublicDir,
     // cacheDir,
     command,
+    /**
+     * 小程序项目中的依赖
+     */
+    dependencies: packageJson.dependencies,
+    isDependencies: (name) => {
+      return _.some(packageJson.dependencies, (item, key) => key === name);
+    },
     project: config.project || "newProject",
     product: config.product || "default",
     mode,

@@ -3,7 +3,6 @@ import _ from "lodash";
 import path from "path";
 // import { isWindows } from "../../utils";
 // import { src, dest } from "gulp";
-import chalk from "chalk";
 import { createLogger /* , Logger */ } from "../../logger";
 import { MultiTask } from "../task";
 import { ITaskManager } from "..";
@@ -66,9 +65,8 @@ export class ComponentTask extends MultiTask {
 
       const [, jsonFilePath]: string[] = this.fileList();
       const componentJson: MiniProgramComponentConfig = await loadJsonFile(
-        path.resolve(this.config.root, "src/", jsonFilePath)
+        path.resolve(this.config.root, jsonFilePath)
       );
-      // TODO: 调试中，下面代码注释中
       if (componentJson.usingComponents) {
         await Promise.all(
           _.map(componentJson.usingComponents, (componentPath) => {
@@ -81,16 +79,6 @@ export class ComponentTask extends MultiTask {
                 path.resolve(
                   path.dirname(path.join("src", this.componentPath)),
                   componentPath
-                )
-              );
-              createLogger().info(
-                chalk.bgBlue(
-                  `path.dirname(this.componentPath):${path.dirname(
-                    this.componentPath
-                  )}\ncomponentPath:${componentPath}\npath.resolve(path.dirname(this.componentPath), componentPath):${path.resolve(
-                    path.dirname(this.componentPath),
-                    componentPath
-                  )} \ntargetPath: ${targetPath}`
                 )
               );
             } else {
@@ -150,7 +138,7 @@ export class ComponentTask extends MultiTask {
     } else {
       return _.map(["js", "json", "wxml", "wxss"], (item) =>
         // TODO: 这里需要根据belongsToSubPackages的值进行判断如何处理
-        path.join(`${this.componentPath}.${item}`)
+        path.join("src", `${this.componentPath}.${item}`)
       );
     }
   }

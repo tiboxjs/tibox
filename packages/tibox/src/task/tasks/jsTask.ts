@@ -5,8 +5,9 @@ import { ITaskManager } from "..";
 import { SingleTask } from "../task";
 import _ from "lodash";
 import { dest, src } from "gulp";
-// import { createLogger } from "../logger";
-// import chalk from "chalk";
+import fs from "fs-extra";
+import { createLogger } from "../../logger";
+import chalk from "chalk";
 
 export class JsTask extends SingleTask {
   // constructor(config: ResolvedConfig, filePath: string) {
@@ -14,32 +15,48 @@ export class JsTask extends SingleTask {
   // }
 
   public async init(options: ITaskManager): Promise<void> {
-    if (!/^@/.test(this.filePath)) {
-      const matchedResult = await matchImportJsFile(
-        path.resolve(this.config.root, path.join("src", this.filePath))
+    if (
+      !this.config.isDependencies(this.filePath) &&
+      !/ext/.test(this.filePath)
+    ) {
+      const fileAbsolutePath = path.resolve(
+        this.config.root,
+        path.join("src", this.filePath)
       );
+      if ((await fs.promises.stat(fileAbsolutePath)).isFile()) {
+        const matchedResult = await matchImportJsFile(fileAbsolutePath);
 
-      await Promise.all(
-        _.map(matchedResult, (item) => {
-          if (!/\.js$/.test(item)) {
-            item += ".js";
-          }
-          const res = path.normalize(
-            path.isAbsolute(item)
-              ? absolute2Relative(this.config.root, item)
-              : /^@/.test(item)
-              ? item
-              : path.join(path.dirname(this.filePath), item)
-          );
+        await Promise.all(
+          _.map(matchedResult, (item) => {
+            if (!this.config.isDependencies(item) && !/\.js$/.test(item)) {
+              item += ".js";
+            }
+            const res = path.normalize(
+              path.isAbsolute(item)
+                ? absolute2Relative(this.config.root, item)
+                : this.config.isDependencies(item)
+                ? item
+                : path.join(path.dirname(this.filePath), item)
+            );
 
-          return options.onRegistJsFileCallback(res);
-        })
-      );
+            return options.onRegistJsFileCallback(res);
+          })
+        );
+      } else {
+        createLogger().info(
+          chalk.yellow(`${fileAbsolutePath} 文件不存在，忽略解析`)
+        );
+      }
+    } else {
+      // TODO ext.js文件的处理还未考虑
     }
   }
 
   public async handle(): Promise<void> {
-    if (!/^@/.test(this.filePath)) {
+    if (
+      !this.config.isDependencies(this.filePath) &&
+      !/ext/.test(this.filePath)
+    ) {
       src(path.join("src", this.filePath)).pipe(
         dest(
           isWindows

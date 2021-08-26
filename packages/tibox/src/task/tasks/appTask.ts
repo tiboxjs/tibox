@@ -106,7 +106,7 @@ export class AppTask extends MultiTask {
 
   private fileList(): string[] {
     return _.map(["app.js", "app.json", "app.wxss"], (item) =>
-      path.join("src/", item)
+      path.join("src", item)
     );
   }
 }
