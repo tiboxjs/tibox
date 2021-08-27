@@ -17,6 +17,7 @@ import path from "path";
 import { absolute2Relative } from "../utils";
 import { createLogger } from "../logger";
 import chalk from "chalk";
+import { SitemapTask } from "./tasks/sitemapTask";
 
 /**
  * 根节点任务
@@ -192,6 +193,10 @@ export class TaskManager implements ITaskManager {
     await projectConfigTask.init(this);
     this.wholeTask.push(projectConfigTask);
 
+    const sitemapTask = new SitemapTask(this.config, "sitemap.json");
+    await sitemapTask.init(this);
+    this.wholeTask.push(sitemapTask);
+
     const packageJsonTask = new PackageJsonTask(this.config, "package.json");
     await packageJsonTask.init(this);
     this.wholeTask.push(packageJsonTask);
@@ -203,5 +208,9 @@ export class TaskManager implements ITaskManager {
 
   public files(): string[] {
     return _.flatten(_.map(this.wholeTask, (task) => task.files()));
+  }
+
+  public destPaths(): string[] {
+    return _.flatten(_.map(this.wholeTask, (task) => task.destPaths()));
   }
 }

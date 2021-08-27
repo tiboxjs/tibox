@@ -13,29 +13,37 @@ export class ProjectConfigTask extends SingleTask {
   public async init(options: ITaskManager): Promise<void> {
     //
   }
-  public async handle(): Promise<void> {
-    const [configJsonFile] = this.fileList();
-    src(configJsonFile)
-      .pipe(
-        through.obj((file, encode, cb) => {
-          const projectConfigJson = JSON.parse(file.contents.toString());
-          projectConfigJson.appid = this.config.appid;
-          projectConfigJson.projectname = this.config.determinedProjectName;
-          file.contents = Buffer.from(
-            JSON.stringify(projectConfigJson, null, 2)
-          );
-          cb(null, file);
-        })
-      )
-      .pipe(
-        dest(
-          isWindows
-            ? this.config.determinedDestDir
-            : path.dirname(
-                `${this.config.determinedDestDir}/project.config.json`
-              )
+  public handle(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const [configJsonFile] = this.fileList();
+      src(configJsonFile)
+        .pipe(
+          through.obj((file, encode, cb) => {
+            const projectConfigJson = JSON.parse(file.contents.toString());
+            projectConfigJson.appid = this.config.appid;
+            projectConfigJson.projectname = this.config.determinedProjectName;
+            file.contents = Buffer.from(
+              JSON.stringify(projectConfigJson, null, 2)
+            );
+            cb(null, file);
+          })
         )
-      );
+        .pipe(
+          dest(
+            isWindows
+              ? this.config.determinedDestDir
+              : path.dirname(
+                  `${this.config.determinedDestDir}/project.config.json`
+                )
+          )
+        )
+        .on("finish", () => {
+          resolve();
+        })
+        .on("error", (res) => {
+          reject(res);
+        });
+    });
   }
 
   public override files(): string[] {

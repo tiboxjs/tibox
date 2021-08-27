@@ -22,6 +22,11 @@ export interface Task {
   files(): string[];
 
   id(): string;
+
+  /**
+   * 本任务，在dest目录对应的文件路径（相对路径，不含'dest/'）
+   */
+  destPaths(): string[];
 }
 
 /**
@@ -65,6 +70,10 @@ export abstract class MultiTask implements Task {
       }
     }
   }
+
+  public destPaths(): string[] {
+    return [];
+  }
 }
 
 /**
@@ -94,5 +103,8 @@ export abstract class SingleTask implements Task {
     if (this.filePath === filePath) {
       return this;
     }
+  }
+  public destPaths(): string[] {
+    return [this.filePath];
   }
 }

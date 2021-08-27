@@ -15,6 +15,9 @@ import _ from "lodash";
 // import { getBuildPackageTask } from "./init";
 // import extTask from "./ext";
 import { parse } from "../parse";
+import { createLogger } from "../logger";
+import { parseDir, prune } from "../utils";
+import path from "path";
 
 export interface DevOptions {
   mock: boolean;
@@ -82,9 +85,33 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
   //   const extName = path.extname(ppath);
   //   const asyncTasks: Undertaker.Task[] = [];
   // const root = config.root;
-  console.log(chalk.red(`doDev`));
   const parseResult = await parse(config);
   await parseResult.taskManager.handle();
+  const allValidDestFiles = parseResult.taskManager.destPaths();
+
+  const allDestFiles = _.map(
+    await parseDir(path.resolve(config.root, config.determinedDestDir), {
+      recursive: true,
+      ignore: /(node_modules|miniprogram_npm)/,
+    }),
+    (filePath: string) =>
+      path.relative(path.join(config.root, config.determinedDestDir), filePath)
+  );
+
+  const unuseFiles = _.pull(allDestFiles, ...allValidDestFiles);
+  if (unuseFiles.length) {
+    createLogger().info(
+      chalk.yellowBright(
+        `移除unuseFiles: ${JSON.stringify(unuseFiles, null, 2)}`
+      )
+    );
+    await Promise.all(
+      _.map(unuseFiles, (unuseItem) =>
+        prune(path.resolve(config.root, config.determinedDestDir, unuseItem))
+      )
+    );
+  }
+
   // const taskOptions: TaskOptions = {
   //   destDir: config.determinedDestDir,
   //   resolvedConfig: config,

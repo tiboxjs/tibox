@@ -52,20 +52,31 @@ export class JsTask extends SingleTask {
     }
   }
 
-  public async handle(): Promise<void> {
+  public handle(): Promise<void> {
     if (
       !this.config.isDependencies(this.filePath) &&
       !/ext/.test(this.filePath)
     ) {
-      src(path.join("src", this.filePath)).pipe(
-        dest(
-          isWindows
-            ? this.config.determinedDestDir
-            : path.dirname(
-                path.join(this.config.determinedDestDir, this.filePath)
-              )
-        )
-      );
+      return new Promise((resolve, reject) => {
+        src(path.join("src", this.filePath))
+          .pipe(
+            dest(
+              isWindows
+                ? this.config.determinedDestDir
+                : path.dirname(
+                    path.join(this.config.determinedDestDir, this.filePath)
+                  )
+            )
+          )
+          .on("finish", () => {
+            resolve();
+          })
+          .on("error", (res) => {
+            reject(res);
+          });
+      });
+    } else {
+      return Promise.resolve();
     }
   }
 }

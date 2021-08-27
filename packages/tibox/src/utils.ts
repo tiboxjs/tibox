@@ -1,7 +1,7 @@
 import debug from "debug";
 // import chalk from 'chalk'
 import { readdir } from "fs/promises";
-import fs from "fs-extra";
+import fs, { constants } from "fs-extra";
 import os from "os";
 import path from "path";
 import { LogLevel } from "./logger";
@@ -574,31 +574,72 @@ export function isImage(filePath: string): boolean {
  */
 export async function parseDir(
   pathDir: string,
-  options: { recursive?: boolean; logLevel?: LogLevel } = {}
+  options: {
+    recursive?: boolean;
+    logLevel?: LogLevel;
+    ignore?: RegExp;
+  } = {}
 ): Promise<string[]> {
-  const { recursive /* , logLevel */ } = options;
+  const { recursive, logLevel, ignore } = options;
   // const logger = createLogger(logLevel);
   if (!path.isAbsolute(pathDir)) {
     throw Error(`${pathDir} is not a absolute path!`);
   }
 
-  const stat = await fs.stat(pathDir);
-  if (stat.isFile()) {
-    return [path.resolve(pathDir)];
-  } else {
-    const readDirResult = await readdir(pathDir);
-    if (recursive) {
-      let result: string[] = [];
-      for (const item of readDirResult) {
-        result = _.concat(
-          result,
-          await parseDir(path.resolve(pathDir, item), { recursive })
-        );
-      }
-      return result;
+  if (!ignore || !ignore.test(pathDir)) {
+    const stat = await fs.stat(pathDir);
+    if (stat.isFile()) {
+      return [path.resolve(pathDir)];
     } else {
-      return readDirResult;
+      const readDirResult = await readdir(pathDir);
+      if (recursive) {
+        let result: string[] = [];
+        for (const item of readDirResult) {
+          result = _.concat(
+            result,
+            await parseDir(path.resolve(pathDir, item), {
+              recursive,
+              logLevel,
+              ignore,
+            })
+          );
+        }
+        return result;
+      } else {
+        return readDirResult;
+      }
     }
+  } else {
+    return [];
+  }
+}
+
+export async function isFileExist(filePath: string): Promise<boolean> {
+  if (!path.isAbsolute(filePath)) {
+    throw Error(`${filePath} is not a absolute path!`);
+  }
+  try {
+    await fs.promises.access(filePath, constants.R_OK);
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+/**
+ * 清理文件或者目录
+ * @param filePath 文件路径
+ * @returns 是否成功
+ */
+export async function prune(filePath: string): Promise<boolean> {
+  if (!path.isAbsolute(filePath)) {
+    throw Error(`${filePath} is not a absolute path!`);
+  }
+  try {
+    await fs.promises.rm(filePath, { recursive: true });
+    return true;
+  } catch (error) {
+    return false;
   }
 }
 

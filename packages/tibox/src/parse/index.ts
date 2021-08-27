@@ -210,8 +210,8 @@ async function parseMiniProgram(config: ResolvedConfig): Promise<ParseResult> {
   //===========
   // const miniprogramApp: MiniProgramApp = new MiniProgramApp(srcPath);
 
-  const rootTask = new TaskManager(config);
-  await rootTask.init();
+  const taskManager = new TaskManager(config);
+  await taskManager.init();
   // TODO: 假代码
-  return { /* fileList: [], mapTask: {},  */ taskManager: rootTask };
+  return { /* fileList: [], mapTask: {},  */ taskManager: taskManager };
 }
