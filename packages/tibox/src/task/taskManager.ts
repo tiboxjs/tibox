@@ -200,6 +200,17 @@ export class TaskManager implements ITaskManager {
     const packageJsonTask = new PackageJsonTask(this.config, "package.json");
     await packageJsonTask.init(this);
     this.wholeTask.push(packageJsonTask);
+
+    const storeTask = new JsTask(this.config, "utils/getRealtimeLogManager.js");
+    await storeTask.init(this);
+    this.wholeTask.push(storeTask);
+
+    const globalBehaviorsTask = new JsTask(
+      this.config,
+      "utils/globalBehaviors.js"
+    );
+    await globalBehaviorsTask.init(this);
+    this.wholeTask.push(globalBehaviorsTask);
   }
 
   public async handle(): Promise<void> {

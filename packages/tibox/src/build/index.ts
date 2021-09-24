@@ -2,16 +2,8 @@ import chalk from "chalk";
 import path from "path";
 import { InlineConfig, resolveConfig } from "../config";
 import { parallel } from "gulp";
-import imageTask from "./taskImage";
-import jsonTask from "./taskJson";
-import jsTask from "./taskJs";
-import wxmlTask from "./taskWxml";
-import wxsTask from "./taskWxs";
-import wxssTask from "./taskWxss";
 import { getBuildPackageTask } from "./init";
 import { TaskOptions } from "../libs/options";
-import extTask from "./ext";
-import replace from "gulp-replace";
 export interface BuildOptions {
   // /**
   //  * Base public path when served in production.
@@ -204,30 +196,12 @@ async function doBuild(inlineConfig: InlineConfig = {}): Promise<BuildOutput> {
   const taskOptions: TaskOptions = {
     destDir: config.determinedDestDir,
     resolvedConfig: config,
-    plugins: [
-      () => {
-        return replace(/\[\[\w+\]\]/g, (match) => {
-          const key = match.substring(2, match.length - 2);
-          return (
-            (typeof config.replacer === "function" && config.replacer(key)) ||
-            match
-          );
-        });
-      },
-      ...config.plugins,
-    ],
+    plugins: [...config.plugins],
   };
   const tasks = parallel(
-    getBuildPackageTask(taskOptions),
+    getBuildPackageTask(taskOptions)
     // TODO: 这个任务的顺序问题，需要调整，放在这要考虑是否合理
-    extTask(taskOptions),
-    jsTask(taskOptions),
-    jsonTask(taskOptions),
     // i18nTask,
-    wxmlTask(taskOptions),
-    wxssTask(taskOptions),
-    wxsTask(taskOptions),
-    imageTask(taskOptions)
     // watchTask,
   );
   /* const result =  */ await tasks((err) => {

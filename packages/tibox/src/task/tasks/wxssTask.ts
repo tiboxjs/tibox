@@ -28,7 +28,11 @@ export class WxssTask extends SingleTask {
   }
   public handle(): Promise<void> {
     return new Promise((resolve, reject) => {
-      src(path.join("src/", this.filePath))
+      let source = src(path.join("src", this.filePath));
+      for (let index = 0; index < this.config.plugins.length; index++) {
+        source = source.pipe(this.config.plugins[index].handle(this.config));
+      }
+      source
         .pipe(
           dest(
             isWindows

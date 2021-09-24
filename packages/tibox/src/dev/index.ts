@@ -18,6 +18,8 @@ import { parse } from "../parse";
 import { createLogger } from "../logger";
 import { parseDir, prune } from "../utils";
 import path from "path";
+import fs from "fs-extra";
+import os from "os";
 
 export interface DevOptions {
   mock: boolean;
@@ -85,6 +87,22 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
   //   const extName = path.extname(ppath);
   //   const asyncTasks: Undertaker.Task[] = [];
   // const root = config.root;
+
+  // TODO: ext.js的处理，还得优化，暂时让小程序跑起来
+  await fs.ensureDir(
+    path.resolve(config.root, config.determinedDestDir, "ext")
+  );
+
+  const stream = fs.createWriteStream(
+    path.resolve(config.root, `${config.determinedDestDir}/ext/ext.js`),
+    { flags: "w" }
+  );
+  stream.write(
+    Buffer.from(
+      `module.exports = ${JSON.stringify(config.ext || {}, null, 2)}${os.EOL}`
+    )
+  );
+
   const parseResult = await parse(config);
   await parseResult.taskManager.handle();
   const allValidDestFiles = parseResult.taskManager.destPaths();
