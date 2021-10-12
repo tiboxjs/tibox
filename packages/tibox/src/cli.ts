@@ -74,7 +74,7 @@ cli
         // clearScreen: options.clearScreen,
         dev: devOptions,
       });
-    } catch (e) {
+    } catch (e: any) {
       createLogger(options.logLevel).error(
         chalk.red(`error during build:\n${e.stack}`)
       );
@@ -101,7 +101,7 @@ cli
         // clearScreen: options.clearScreen,
         build: buildOptions,
       });
-    } catch (e) {
+    } catch (e: any) {
       createLogger(options.logLevel).error(
         chalk.red(`error during build:\n${e.stack}`)
       );
