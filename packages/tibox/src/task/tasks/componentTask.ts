@@ -1,8 +1,6 @@
 import { ResolvedConfig } from "../..";
 import _ from "lodash";
 import path from "path";
-// import { isWindows } from "../../utils";
-// import { src, dest } from "gulp";
 import { createLogger /* , Logger */ } from "../../logger";
 import { MultiTask } from "../task";
 import { ITaskManager } from "..";

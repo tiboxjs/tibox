@@ -15,8 +15,8 @@ import { WxssTask } from "./tasks/wxssTask";
 import { PackageJsonTask } from "./tasks/packageJsonTask";
 import path from "path";
 import { absolute2Relative } from "../utils";
-import { createLogger } from "../logger";
-import chalk from "chalk";
+// import { createLogger } from "../logger";
+// import chalk from "chalk";
 import { SitemapTask } from "./tasks/sitemapTask";
 
 /**
@@ -31,7 +31,7 @@ export class TaskManager implements ITaskManager {
   }
 
   public async onRegistPageCallback(pagePath: string): Promise<PageTask> {
-    createLogger().info(chalk.grey(`onRegistPageCallback: ${pagePath}`));
+    // createLogger().info(chalk.grey(`onRegistPageCallback: ${pagePath}`));
     if (path.isAbsolute(pagePath)) {
       pagePath = absolute2Relative(this.config.root, pagePath);
     }
@@ -54,9 +54,9 @@ export class TaskManager implements ITaskManager {
   public async onRegistComponentCallback(
     componentPath: string
   ): Promise<ComponentTask> {
-    createLogger().info(
-      chalk.grey(`onRegistComponentCallback: ${componentPath}`)
-    );
+    // createLogger().info(
+    //   chalk.grey(`onRegistComponentCallback: ${componentPath}`)
+    // );
     if (path.isAbsolute(componentPath)) {
       componentPath = absolute2Relative(this.config.root, componentPath);
     }
@@ -77,7 +77,7 @@ export class TaskManager implements ITaskManager {
   }
 
   public async onRegistJsFileCallback(jsFilePath: string): Promise<JsTask> {
-    createLogger().info(chalk.grey(`onRegistJsFileCallback: ${jsFilePath}`));
+    // createLogger().info(chalk.grey(`onRegistJsFileCallback: ${jsFilePath}`));
     let jsTask = new JsTask(this.config, jsFilePath);
 
     const findResult = _.find(
@@ -97,9 +97,9 @@ export class TaskManager implements ITaskManager {
   public async onRegistJsonFileCallback(
     jsonFilePath: string
   ): Promise<JsonTask> {
-    createLogger().info(
-      chalk.grey(`onRegistJsonFileCallback: ${jsonFilePath}`)
-    );
+    // createLogger().info(
+    //   chalk.grey(`onRegistJsonFileCallback: ${jsonFilePath}`)
+    // );
     let jsonTask = new JsonTask(this.config, jsonFilePath);
 
     const findResult = _.find(
@@ -119,9 +119,9 @@ export class TaskManager implements ITaskManager {
   public async onRegistWxmlFileCallback(
     wxmlFilePath: string
   ): Promise<WxmlTask> {
-    createLogger().info(
-      chalk.grey(`onRegistWxmlFileCallback: ${wxmlFilePath}`)
-    );
+    // createLogger().info(
+    //   chalk.grey(`onRegistWxmlFileCallback: ${wxmlFilePath}`)
+    // );
     let wxmlTask = new WxmlTask(this.config, wxmlFilePath);
 
     const findResult = _.find(
@@ -139,7 +139,7 @@ export class TaskManager implements ITaskManager {
   }
 
   public async onRegistWxssFileCallback(wxssPath: string): Promise<WxssTask> {
-    createLogger().info(chalk.grey(`onRegistWxssFileCallback: ${wxssPath}`));
+    // createLogger().info(chalk.grey(`onRegistWxssFileCallback: ${wxssPath}`));
     let wxssTask = new WxssTask(this.config, wxssPath);
 
     const findResult = _.find(
@@ -159,9 +159,9 @@ export class TaskManager implements ITaskManager {
   public async onRegistImageFileCallback(
     imageFilePath: string
   ): Promise<ImageTask> {
-    createLogger().info(
-      chalk.grey(`onRegistImageFileCallback: ${imageFilePath}`)
-    );
+    // createLogger().info(
+    //   chalk.grey(`onRegistImageFileCallback: ${imageFilePath}`)
+    // );
     let imageTask = new ImageTask(this.config, imageFilePath);
 
     const findResult = _.find(
@@ -200,17 +200,6 @@ export class TaskManager implements ITaskManager {
     const packageJsonTask = new PackageJsonTask(this.config, "package.json");
     await packageJsonTask.init(this);
     this.wholeTask.push(packageJsonTask);
-
-    const storeTask = new JsTask(this.config, "utils/getRealtimeLogManager.js");
-    await storeTask.init(this);
-    this.wholeTask.push(storeTask);
-
-    const globalBehaviorsTask = new JsTask(
-      this.config,
-      "utils/globalBehaviors.js"
-    );
-    await globalBehaviorsTask.init(this);
-    this.wholeTask.push(globalBehaviorsTask);
   }
 
   public async handle(): Promise<void> {

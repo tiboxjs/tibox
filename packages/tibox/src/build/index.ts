@@ -1,9 +1,13 @@
 import chalk from "chalk";
 import path from "path";
 import { InlineConfig, resolveConfig } from "../config";
-import { parallel } from "gulp";
-import { getBuildPackageTask } from "./init";
-import { TaskOptions } from "../libs/options";
+import { parse } from "../parse";
+// import { TaskOptions } from "../libs/options";
+import { createLogger } from "../logger";
+import _ from "lodash";
+import { parseDir, prune } from "../utils";
+import fs from "fs-extra";
+import os from "os";
 export interface BuildOptions {
   // /**
   //  * Base public path when served in production.
@@ -179,38 +183,68 @@ export async function build(
 }
 
 async function doBuild(inlineConfig: InlineConfig = {}): Promise<BuildOutput> {
+  // const logger = createLogger(inlineConfig.logLevel);
+  // // One-liner for current directory
+  // const root = inlineConfig.root || ".";
+  // 不监听 package.json、tibox.config.js、.env.*
+  // const needWatches = [
+  //   "src/",
+  //   "project.config.json" /* , "tailwind.config.js", "tailwind/", "svg/" */,
+  // ];
+  // const resolvedPath = path.resolve(root, "src/");
+  // logger.info(chalk.green(`resolvedPath: ${resolvedPath}`));
+
   const config = await resolveConfig(
     inlineConfig,
-    "build",
+    "dev",
     "default",
     "production"
   );
-  console.log(config);
 
-  // 格式通常为 /path/to/project/dist-agility-default-development
-  const resolvedDestDir = path.resolve(config.determinedDestDir);
-  console.log(chalk.red(`resolvedDestDir is ${resolvedDestDir}`));
-
-  console.log(chalk.green(`config.ext:${config.ext}`));
-
-  const taskOptions: TaskOptions = {
-    destDir: config.determinedDestDir,
-    resolvedConfig: config,
-    plugins: [...config.plugins],
-  };
-  const tasks = parallel(
-    getBuildPackageTask(taskOptions)
-    // TODO: 这个任务的顺序问题，需要调整，放在这要考虑是否合理
-    // i18nTask,
-    // watchTask,
+  // TODO: ext.js的处理，还得优化，暂时让小程序跑起来
+  await fs.ensureDir(
+    path.resolve(config.root, config.determinedDestDir, "ext")
   );
-  /* const result =  */ await tasks((err) => {
-    if (err) {
-      console.error(err);
-      process.exit(1);
-    }
-  });
-  // console.log(chalk.red(`result:${result}`));
+
+  const stream = fs.createWriteStream(
+    path.resolve(config.root, `${config.determinedDestDir}/ext/ext.js`),
+    { flags: "w" }
+  );
+  stream.write(
+    Buffer.from(
+      `module.exports = ${JSON.stringify(config.ext || {}, null, 2)}${os.EOL}`
+    )
+  );
+
+  const parseResult = await parse(config);
+  await parseResult.taskManager.handle();
+
+  const allValidDestFiles = parseResult.taskManager.destPaths();
+
+  const allDestFiles = _.map(
+    await parseDir(path.resolve(config.root, config.determinedDestDir), {
+      recursive: true,
+      ignore: /(node_modules|miniprogram_npm)/,
+    }),
+    (filePath: string) =>
+      path.relative(path.join(config.root, config.determinedDestDir), filePath)
+  );
+
+  const unuseFiles = _.pull(allDestFiles, ...allValidDestFiles);
+  if (unuseFiles.length) {
+    createLogger().info(
+      chalk.yellowBright(
+        `移除unuseFiles: ${JSON.stringify(unuseFiles, null, 2)}`
+      )
+    );
+    await Promise.all(
+      _.map(unuseFiles, (unuseItem) =>
+        prune(path.resolve(config.root, config.determinedDestDir, unuseItem))
+      )
+    );
+  }
+
+  parseResult.taskManager.handle();
   return {};
 }
 

@@ -1,7 +1,6 @@
 import { ResolvedConfig } from "../..";
 import path from "path";
-import { dest, src } from "gulp";
-import { isWindows } from "../../utils";
+import fs from "fs-extra";
 import through from "through2";
 import { SingleTask } from "../task";
 import { ITaskManager } from "..";
@@ -16,25 +15,19 @@ export class ProjectConfigTask extends SingleTask {
   public handle(): Promise<void> {
     return new Promise((resolve, reject) => {
       const [configJsonFile] = this.fileList();
-      src(configJsonFile)
+      fs.createReadStream(configJsonFile)
         .pipe(
-          through.obj((file, encode, cb) => {
-            const projectConfigJson = JSON.parse(file.contents.toString());
+          through.obj((buffer, encode, cb) => {
+            const projectConfigJson = JSON.parse(buffer.toString());
             projectConfigJson.appid = this.config.appid;
             projectConfigJson.projectname = this.config.determinedProjectName;
-            file.contents = Buffer.from(
-              JSON.stringify(projectConfigJson, null, 2)
-            );
-            cb(null, file);
+            buffer = Buffer.from(JSON.stringify(projectConfigJson, null, 2));
+            cb(null, buffer);
           })
         )
         .pipe(
-          dest(
-            isWindows
-              ? this.config.determinedDestDir
-              : path.dirname(
-                  `${this.config.determinedDestDir}/project.config.json`
-                )
+          fs.createWriteStream(
+            path.join(this.config.determinedDestDir, "project.config.json")
           )
         )
         .on("finish", () => {

@@ -1,13 +1,13 @@
 import path from "path";
-import { absolute2Relative, isWindows, matchImportJsFile } from "../../utils";
+import { absolute2Relative, matchImportJsFile } from "../../utils";
 import { ITaskManager } from "..";
 // import { ResolvedConfig } from "..";
 import { SingleTask } from "../task";
 import _ from "lodash";
-import { dest, src } from "gulp";
 import fs from "fs-extra";
 import { createLogger } from "../../logger";
 import chalk from "chalk";
+// import through from "through2";
 
 export class JsTask extends SingleTask {
   // constructor(config: ResolvedConfig, filePath: string) {
@@ -58,19 +58,10 @@ export class JsTask extends SingleTask {
       !/ext/.test(this.filePath)
     ) {
       return new Promise((resolve, reject) => {
-        let source = src(path.join("src", this.filePath));
-        for (let index = 0; index < this.config.plugins.length; index++) {
-          source = source.pipe(this.config.plugins[index].handle(this.config));
-        }
-
-        source
+        fs.createReadStream(path.join("src", this.filePath))
           .pipe(
-            dest(
-              isWindows
-                ? this.config.determinedDestDir
-                : path.dirname(
-                    path.join(this.config.determinedDestDir, this.filePath)
-                  )
+            fs.createWriteStream(
+              path.join(this.config.determinedDestDir, this.filePath)
             )
           )
           .on("finish", () => {

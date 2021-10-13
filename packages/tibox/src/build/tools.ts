@@ -92,7 +92,7 @@
 // // eslint-disable-next-line import/no-dynamic-require
 // const productConfig = require(`${process.cwd()}${path.sep}mpConfig${path.sep + options.product}.js`)
 // /**
-//  * gulp 替换字符串规则
+//  * 替换字符串规则
 //  */
 // const patternReg = /\[\[\w+\]\]/g
 // const replaceStr = {

@@ -1,6 +1,6 @@
-import { dest, src } from "gulp";
+import fs from "fs-extra";
 import path from "path";
-import { absolute2Relative, isWindows, matchImportWxssFile } from "../../utils";
+import { absolute2Relative, matchImportWxssFile } from "../../utils";
 import { ITaskManager } from "..";
 import { SingleTask } from "../task";
 import _ from "lodash";
@@ -28,18 +28,10 @@ export class WxssTask extends SingleTask {
   }
   public handle(): Promise<void> {
     return new Promise((resolve, reject) => {
-      let source = src(path.join("src", this.filePath));
-      for (let index = 0; index < this.config.plugins.length; index++) {
-        source = source.pipe(this.config.plugins[index].handle(this.config));
-      }
-      source
+      fs.createReadStream(path.join("src", this.filePath))
         .pipe(
-          dest(
-            isWindows
-              ? this.config.determinedDestDir
-              : path.dirname(
-                  path.join(this.config.determinedDestDir, this.filePath)
-                )
+          fs.createWriteStream(
+            path.join(this.config.determinedDestDir, this.filePath)
           )
         )
         .on("finish", () => {

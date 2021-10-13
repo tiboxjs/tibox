@@ -1,8 +1,7 @@
 // import { createLogger } from "../logger";
 import { ITaskManager } from "..";
 import { SingleTask } from "../task";
-import { dest, src } from "gulp";
-import { isWindows } from "../../utils";
+import fs from "fs-extra";
 import path from "path";
 
 export class JsonTask extends SingleTask {
@@ -11,14 +10,10 @@ export class JsonTask extends SingleTask {
   }
   public handle(): Promise<void> {
     return new Promise((resolve, reject) => {
-      src(path.join("src/", this.filePath))
+      fs.createReadStream(path.join("src/", this.filePath))
         .pipe(
-          dest(
-            isWindows
-              ? this.config.determinedDestDir
-              : path.dirname(
-                  path.join(this.config.determinedDestDir, this.filePath)
-                )
+          fs.createWriteStream(
+            path.join(this.config.determinedDestDir, this.filePath)
           )
         )
         .on("finish", () => {

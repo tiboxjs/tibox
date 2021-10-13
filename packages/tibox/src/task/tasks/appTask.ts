@@ -2,8 +2,6 @@ import path from "path";
 import { ResolvedConfig } from "../..";
 import _ from "lodash";
 // import chalk from "chalk";
-// import { dest, src } from "gulp";
-// import { isWindows } from "../utils";
 import loadJsonFile from "load-json-file";
 import { MultiTask } from "../task";
 import { ITaskManager } from "..";

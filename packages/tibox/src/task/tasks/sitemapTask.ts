@@ -1,6 +1,6 @@
-import { dest, src } from "gulp";
+import fs from "fs-extra";
 import path from "path";
-import { isFileExist, isWindows } from "../../utils";
+import { isFileExist } from "../../utils";
 import { ITaskManager } from "..";
 import { SingleTask } from "../task";
 
@@ -13,14 +13,10 @@ export class SitemapTask extends SingleTask {
       (flag) => {
         if (flag) {
           return new Promise((resolve, reject) => {
-            src(this.filePath)
+            fs.createReadStream(this.filePath)
               .pipe(
-                dest(
-                  isWindows
-                    ? this.config.determinedDestDir
-                    : path.dirname(
-                        path.join(this.config.determinedDestDir, this.filePath)
-                      )
+                fs.createWriteStream(
+                  path.join(this.config.determinedDestDir, this.filePath)
                 )
               )
               .on("finish", () => {

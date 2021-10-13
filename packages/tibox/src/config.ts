@@ -134,7 +134,8 @@ export type ResolvedConfig = Readonly<
     // resolve: ResolveOptions & {
     //   alias: Alias[]
     // }
-    plugins: /* readonly  */ Plugin[];
+    // TODO: 暂时移除了plugin，后期考虑plugin结构
+    // plugins: /* readonly  */ Plugin[];
     // dev: ResolvedDevOptions;
     build: ResolvedBuildOptions;
     replacer?: (key: string) => string;
@@ -270,7 +271,7 @@ export async function resolveConfig(
       DEV: !isProduction,
       PROD: isProduction,
     },
-    plugins: config.plugins || [],
+    // plugins: config.plugins || [],
     // assetsInclude(file: string) {
     //   return DEFAULT_ASSETS_RE.test(file) || assetsFilter(file);
     // },
