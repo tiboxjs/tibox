@@ -51,7 +51,7 @@ export class PackageJsonTask extends SingleTask {
         });
       })
       .then(() => {
-        if (this.config.command === 'dev') {
+        if (this.config.command === "dev") {
           return new Promise((resolve, reject) => {
             exec(
               `cli build-npm --project "${path.resolve(
@@ -70,7 +70,7 @@ export class PackageJsonTask extends SingleTask {
             );
           });
         } else {
-          return Promise.resolve()
+          return Promise.resolve();
         }
       });
   }
