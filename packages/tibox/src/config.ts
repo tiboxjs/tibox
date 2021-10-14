@@ -17,6 +17,7 @@ import {
 } from "./utils";
 import { AliasOptions, Alias } from "../types/alias";
 import { DevOptions } from "./dev";
+import { resolveUploadOptions, UploadOptions } from "./upload";
 import { parseDestFolderName, parseProjectName } from "./libs/tools";
 import loadJsonFile from "load-json-file";
 import { LogLevel } from "./logger";
@@ -24,7 +25,7 @@ import _ from "lodash";
 
 // import { CLIENT_DIR, DEFAULT_ASSETS_RE } from './constants'
 export interface ConfigEnv {
-  command: "build" | "dev";
+  command: "build" | "dev" | "upload";
   product: string;
   mode: string;
 }
@@ -61,6 +62,11 @@ export interface UserConfig {
    * Build specific options
    */
   build?: BuildOptions;
+
+  /**
+   * upload specific options
+   */
+  upload?: UploadOptions;
 
   /**
    * Environment files directory. Can be an absolute path, or a path relative from
@@ -111,12 +117,13 @@ export type ResolvedConfig = Readonly<
     root: string;
     // base: string;
     // publicDir: string
-    command: "build" | "dev";
+    command: "build" | "dev" | "upload";
     dependencies: Record<string, string>;
     isDependencies: (name: string) => boolean;
     project: string;
     product: string;
     appid: string;
+    version: string;
     /**
      * 最终的项目名称
      */
@@ -153,7 +160,7 @@ type PackageJson = {
 
 export async function resolveConfig(
   inlineConfig: InlineConfig,
-  command: "build" | "dev",
+  command: "build" | "dev" | "upload",
   defaultProduct = "default",
   defaultMode = "development"
 ): Promise<ResolvedConfig> {
@@ -236,6 +243,8 @@ export async function resolveConfig(
 
   const packageJson = (await loadJsonFile("./package.json")) as PackageJson;
 
+  const resolvedUploadOptions = resolveUploadOptions(config.upload);
+
   const resolved: ResolvedConfig = {
     ...config,
     configFile: configFile ? normalizePath(configFile) : undefined,
@@ -257,6 +266,7 @@ export async function resolveConfig(
     project: config.project || "newProject",
     product: config.product || "default",
     mode,
+    version: packageJson.version,
     appid: config.appid || "",
     determinedProjectName,
     determinedDestDir,
@@ -264,6 +274,7 @@ export async function resolveConfig(
     // plugins: userPlugins,
     // server: resolveServerOptions(resolvedRoot, config.server),
     build: resolvedBuildOptions,
+    upload: resolvedUploadOptions,
     env: {
       ...userEnv,
       // BASE_URL,
