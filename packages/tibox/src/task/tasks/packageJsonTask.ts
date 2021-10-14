@@ -51,23 +51,27 @@ export class PackageJsonTask extends SingleTask {
         });
       })
       .then(() => {
-        return new Promise((resolve, reject) => {
-          exec(
-            `cli build-npm --project "${path.resolve(
-              this.config.root,
-              this.config.determinedDestDir
-            )}"`,
-            { timeout: 60000 },
-            (err) => {
-              if (err) {
-                createLogger().error(chalk.red(err));
-                reject(err);
-              } else {
-                resolve();
+        if (this.config.command === 'dev') {
+          return new Promise((resolve, reject) => {
+            exec(
+              `cli build-npm --project "${path.resolve(
+                this.config.root,
+                this.config.determinedDestDir
+              )}"`,
+              { timeout: 60000 },
+              (err) => {
+                if (err) {
+                  createLogger().error(chalk.red(err));
+                  reject(err);
+                } else {
+                  resolve();
+                }
               }
-            }
-          );
-        });
+            );
+          });
+        } else {
+          return Promise.resolve()
+        }
       });
   }
 }
