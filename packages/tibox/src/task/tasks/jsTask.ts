@@ -57,19 +57,18 @@ export class JsTask extends SingleTask {
       !this.config.isDependencies(this.filePath) &&
       !/ext/.test(this.filePath)
     ) {
-      return new Promise((resolve, reject) => {
-        fs.createReadStream(path.join("src", this.filePath))
-          .pipe(
-            fs.createWriteStream(
-              path.join(this.config.determinedDestDir, this.filePath)
-            )
-          )
-          .on("finish", () => {
-            resolve();
-          })
-          .on("error", (res) => {
-            reject(res);
-          });
+      const distPath = path.join(this.config.determinedDestDir, this.filePath);
+      return fs.ensureDir(path.dirname(distPath)).then(() => {
+        return new Promise((resolve, reject) => {
+          fs.createReadStream(path.join("src", this.filePath))
+            .pipe(fs.createWriteStream(distPath))
+            .on("finish", () => {
+              resolve();
+            })
+            .on("error", (res) => {
+              reject(res);
+            });
+        });
       });
     } else {
       return Promise.resolve();
