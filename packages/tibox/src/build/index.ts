@@ -196,7 +196,7 @@ async function doBuild(inlineConfig: InlineConfig = {}): Promise<BuildOutput> {
 
   const config = await resolveConfig(
     inlineConfig,
-    "dev",
+    "build",
     "default",
     "production"
   );
