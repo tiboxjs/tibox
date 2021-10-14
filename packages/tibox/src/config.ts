@@ -617,42 +617,42 @@ async function bundleConfigFile(
     format: mjs ? "esm" : "cjs",
     sourcemap: "inline",
     metafile: true,
-    // plugins: [
-    //   {
-    //     name: "externalize-deps",
-    //     setup(build) {
-    //       build.onResolve({ filter: /.*/ }, (args) => {
-    //         const id = args.path;
-    //         if (id[0] !== "." && !path.isAbsolute(id)) {
-    //           return {
-    //             external: true,
-    //           };
-    //         }
-    //       });
-    //     },
-    //   },
-    //   {
-    //     name: "replace-import-meta",
-    //     setup(build) {
-    //       build.onLoad({ filter: /\.[jt]s$/ }, async (args) => {
-    //         const contents = await fs.promises.readFile(args.path, "utf8");
-    //         return {
-    //           loader: args.path.endsWith(".ts") ? "ts" : "js",
-    //           contents: contents
-    //             .replace(
-    //               /\bimport\.meta\.url\b/g,
-    //               JSON.stringify(`file://${args.path}`)
-    //             )
-    //             .replace(
-    //               /\b__dirname\b/g,
-    //               JSON.stringify(path.dirname(args.path))
-    //             )
-    //             .replace(/\b__filename\b/g, JSON.stringify(args.path)),
-    //         };
-    //       });
-    //     },
-    //   },
-    // ],
+    plugins: [
+      {
+        name: "externalize-deps",
+        setup(build) {
+          build.onResolve({ filter: /.*/ }, (args) => {
+            const id = args.path;
+            if (id[0] !== "." && !path.isAbsolute(id)) {
+              return {
+                external: true,
+              };
+            }
+          });
+        },
+      },
+      //   {
+      //     name: "replace-import-meta",
+      //     setup(build) {
+      //       build.onLoad({ filter: /\.[jt]s$/ }, async (args) => {
+      //         const contents = await fs.promises.readFile(args.path, "utf8");
+      //         return {
+      //           loader: args.path.endsWith(".ts") ? "ts" : "js",
+      //           contents: contents
+      //             .replace(
+      //               /\bimport\.meta\.url\b/g,
+      //               JSON.stringify(`file://${args.path}`)
+      //             )
+      //             .replace(
+      //               /\b__dirname\b/g,
+      //               JSON.stringify(path.dirname(args.path))
+      //             )
+      //             .replace(/\b__filename\b/g, JSON.stringify(args.path)),
+      //         };
+      //       });
+      //     },
+      //   },
+    ],
   });
   const { text } = result.outputFiles[0];
   return {

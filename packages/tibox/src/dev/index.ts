@@ -4,7 +4,6 @@ import chokidar from "chokidar";
 import chalk from "chalk";
 // import wxmlTask from "./taskWxml";
 // import { TaskOptions } from "../libs/options";
-// import Undertaker from "undertaker";
 // import wxssTask from "./taskWxss";
 // import jsonTask from "./taskJson";
 // import jsTask from "./taskJs";
