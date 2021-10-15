@@ -52,7 +52,7 @@ export function createLogger(
     return options.customLogger;
   }
 
-  const { prefix = "[vite]", allowClearScreen = true } = options;
+  const { prefix = "[vite]", allowClearScreen = false } = options;
   const thresh = LogLevels[level];
   const clear =
     allowClearScreen && process.stdout.isTTY && !process.env.CI

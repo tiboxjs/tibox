@@ -22,6 +22,7 @@ importers:
       '@types/fs-extra': ^9.0.13
       '@types/lodash': ^4.14.175
       '@types/node': '*'
+      '@types/throttle-debounce': ^2.1.0
       '@types/through2': ^2.0.36
       '@typescript-eslint/eslint-plugin': ^4.33.0
       '@typescript-eslint/parser': ^4.33.0
@@ -43,12 +44,14 @@ importers:
       ora: ^5.4.1
       prettier: ^2.4.1
       readline: ^1.3.0
+      throttle-debounce: ^3.0.1
       through2: ^4.0.2
       ts-node-dev: ^1.1.8
       typescript: ^4.4.4
     dependencies:
       '@nodelib/fs.scandir': 2.1.5
       '@types/figlet': 1.5.4
+      '@types/throttle-debounce': 2.1.0
       cac: 6.7.11
       chalk: 4.1.2
       chokidar: 3.5.2
@@ -64,6 +67,7 @@ importers:
       miniprogram-ci: 1.6.1
       ora: 5.4.1
       readline: 1.3.0
+      throttle-debounce: 3.0.1
       through2: 4.0.2
     devDependencies:
       '@commitlint/cli': 12.1.4
@@ -2153,6 +2157,10 @@ packages:
   /@types/strip-json-comments/0.0.30:
     resolution: {integrity: sha512-7NQmHra/JILCd1QqpSzl8+mJRc8ZHz3uDm8YV1Ks9IhK0epEiTw8aIErbvH9PI+6XbqhyIQy3462nEsn7UVzjQ==}
     dev: true
+
+  /@types/throttle-debounce/2.1.0:
+    resolution: {integrity: sha512-5eQEtSCoESnh2FsiLTxE121IiE60hnMqcb435fShf4bpLRjEu1Eoekht23y6zXS9Ts3l+Szu3TARnTsA0GkOkQ==}
+    dev: false
 
   /@types/through2/2.0.36:
     resolution: {integrity: sha512-vuifQksQHJXhV9McpVsXKuhnf3lsoX70PnhcqIAbs9dqLH2NgrGz0DzZPDY3+Yh6eaRqcE1gnCQ6QhBn1/PT5A==}
@@ -6999,6 +7007,11 @@ packages:
   /text-table/0.2.0:
     resolution: {integrity: sha1-f17oI66AUgfACvLfSoTsP8+lcLQ=}
     dev: true
+
+  /throttle-debounce/3.0.1:
+    resolution: {integrity: sha512-dTEWWNu6JmeVXY0ZYoPuH5cRIwc0MeGbJwah9KUNYSJwommQpCzTySTpEe8Gs1J23aeWEuAobe4Ag7EHVt/LOg==}
+    engines: {node: '>=10'}
+    dev: false
 
   /through/2.3.8:
     resolution: {integrity: sha1-DdTJ/6q8NXlgsbckEV1+Doai4fU=}

@@ -63,8 +63,7 @@ cli
   .command("[root]")
   .alias("dev")
   .action(async (root: string, options: DevOptions & GlobalCLIOptions) => {
-    figlet.textSync("TiBox (*^▽^*)");
-
+    figlet.textSync("TiBox");
     const { dev } = await import("./dev");
     const devOptions = cleanOptions(options) as DevOptions;
     try {
@@ -145,3 +144,4 @@ cli
 cli.help();
 cli.version(require("../package.json").version);
 cli.parse();
+cli.outputVersion();

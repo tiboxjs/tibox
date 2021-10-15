@@ -6,6 +6,7 @@ import path from "path";
 import { createLogger } from "../../logger";
 import { exec } from "child_process";
 import chalk from "chalk";
+import { isNeedHandle } from "../../watcher";
 
 export class PackageJsonTask extends SingleTask {
   public async init(options: ITaskManager): Promise<void> {
@@ -13,62 +14,73 @@ export class PackageJsonTask extends SingleTask {
   }
   public handle(): Promise<void> {
     const distPath = path.join(this.config.determinedDestDir, this.filePath);
-    return fs
-      .ensureDir(path.dirname(distPath))
-      .then(() => {
-        return new Promise((resolve, reject) => {
-          fs.createReadStream(this.filePath)
-            .pipe(fs.createWriteStream(distPath))
-            .on("finish", () => {
-              resolve("");
+    return fs.promises
+      .stat(this.filePath)
+      .then((stats) => {
+        return isNeedHandle(this.filePath, stats.mtimeMs);
+      })
+      .then((needHandle) => {
+        if (needHandle) {
+          return fs
+            .ensureDir(path.dirname(distPath))
+            .then(() => {
+              return new Promise((resolve, reject) => {
+                fs.createReadStream(this.filePath)
+                  .pipe(fs.createWriteStream(distPath))
+                  .on("finish", () => {
+                    resolve("");
+                  })
+                  .on("error", (res) => {
+                    reject(res);
+                  });
+              });
             })
-            .on("error", (res) => {
-              reject(res);
-            });
-        });
-      })
-      .then(() => {
-        return new Promise((resolve, reject) => {
-          const yarnCMDOptions = [
-            "--prefer-offline",
-            "--registry=http://registry.npm.manwei.com",
-          ];
-          exec(
-            `cnpm i --production ${yarnCMDOptions.join(" ")}`,
-            {
-              cwd: this.config.determinedDestDir,
-              timeout: 60000,
-            },
-            (err) => {
-              if (err) {
-                createLogger().error(chalk.red(err));
-                reject(err);
+            .then(() => {
+              return new Promise((resolve, reject) => {
+                const yarnCMDOptions = [
+                  "--prefer-offline",
+                  "--registry=http://registry.npm.manwei.com",
+                ];
+                exec(
+                  `cnpm i --production ${yarnCMDOptions.join(" ")}`,
+                  {
+                    cwd: this.config.determinedDestDir,
+                    timeout: 60000,
+                  },
+                  (err) => {
+                    if (err) {
+                      createLogger().error(chalk.red(err));
+                      reject(err);
+                    } else {
+                      resolve("");
+                    }
+                  }
+                );
+              });
+            })
+            .then(() => {
+              if (this.config.command === "dev") {
+                return new Promise((resolve, reject) => {
+                  exec(
+                    `cli build-npm --project "${path.resolve(
+                      this.config.root,
+                      this.config.determinedDestDir
+                    )}"`,
+                    { timeout: 60000 },
+                    (err) => {
+                      if (err) {
+                        createLogger().error(chalk.red(err));
+                        reject(err);
+                      } else {
+                        resolve();
+                      }
+                    }
+                  );
+                });
               } else {
-                resolve("");
+                return Promise.resolve();
               }
-            }
-          );
-        });
-      })
-      .then(() => {
-        if (this.config.command === "dev") {
-          return new Promise((resolve, reject) => {
-            exec(
-              `cli build-npm --project "${path.resolve(
-                this.config.root,
-                this.config.determinedDestDir
-              )}"`,
-              { timeout: 60000 },
-              (err) => {
-                if (err) {
-                  createLogger().error(chalk.red(err));
-                  reject(err);
-                } else {
-                  resolve();
-                }
-              }
-            );
-          });
+            });
         } else {
           return Promise.resolve();
         }

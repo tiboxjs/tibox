@@ -1,22 +1,15 @@
 import { InlineConfig, resolveConfig } from "../config";
 import chokidar from "chokidar";
 import ora from "ora";
-// import { createLogger } from "../logger";
 import chalk from "chalk";
-// import wxmlTask from "./taskWxml";
-// import { TaskOptions } from "../libs/options";
-// import wxssTask from "./taskWxss";
-// import jsonTask from "./taskJson";
-// import jsTask from "./taskJs";
-// import imageTask from "./taskImage";
 import _ from "lodash";
-// import extTask from "./ext";
 import { parse } from "../parse";
 import { createLogger } from "../logger";
 import { parseDir, prune } from "../utils";
 import path from "path";
 import fs from "fs-extra";
 import os from "os";
+import { debounce } from "throttle-debounce";
 
 export interface DevOptions {
   mock: boolean;
@@ -107,6 +100,13 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
     );
   }
 
+  const debounceFunction = debounce(250, false, async () => {
+    const start = Date.now();
+    const watchingSpinner = ora("处理中...").start();
+    await parseResult.taskManager.handle();
+    watchingSpinner.succeed(`完成 ${Date.now() - start}ms`);
+  });
+
   chokidar
     .watch(
       _.map(needWatches, (item) => path.resolve(config.root, item)),
@@ -121,8 +121,9 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
       }
     )
     .on("all", async (event, ppath) => {
-      createLogger().info(chalk.greenBright(`${event}, ${ppath}`));
-      await parseResult.taskManager.handle();
+      createLogger().info(chalk.grey(`${event}, ${ppath}`));
+      await debounceFunction();
+      // await parseResult.taskManager.handle();
     })
     .on("ready", () => {
       spinner.succeed("初始化完成，开始监听...");
