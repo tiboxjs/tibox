@@ -63,14 +63,7 @@ cli
   .command("[root]")
   .alias("dev")
   .action(async (root: string, options: DevOptions & GlobalCLIOptions) => {
-    figlet("TiBox", (err, data) => {
-      if (err) {
-        console.log("Something went wrong...");
-        console.dir(err);
-        return;
-      }
-      createLogger().info(data || "");
-    });
+    figlet.textSync("TiBox (*^▽^*)");
 
     const { dev } = await import("./dev");
     const devOptions = cleanOptions(options) as DevOptions;

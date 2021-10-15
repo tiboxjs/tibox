@@ -157,7 +157,7 @@ async function doParse(resolvedConfig: ResolvedConfig): Promise<ParseResult> {
   if (unTrackedFiles.length) {
     logger.info(
       chalk.yellow(
-        `发现以下${unTrackedFiles.length}个文件存在于项目中，但是并未被引用。请检查依赖关系是否正确，在依赖关系被解决前TiBox不会对这些文件做处理`
+        `\n发现以下${unTrackedFiles.length}个文件存在于项目中，但是并未被引用。请检查依赖关系是否正确，在依赖关系被解决前TiBox不会对这些文件做处理`
       )
     );
     _.forEach(unTrackedFiles, (item, index) => {

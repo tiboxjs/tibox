@@ -6,6 +6,7 @@ import { MultiTask } from "../task";
 import { ITaskManager } from "..";
 import loadJsonFile from "load-json-file";
 import { absolute2Relative } from "../../utils";
+import { DEBUGING } from "../../constants";
 export type MiniProgramComponentConfig = {
   usingComponents?: Record<string, string>;
 };
@@ -52,7 +53,9 @@ export class ComponentTask extends MultiTask {
 
   public async init(options: ITaskManager): Promise<void> {
     if (/^@/.test(this.componentPath)) {
-      createLogger().info(`Component [${this.componentPath}] ignore`);
+      if (DEBUGING) {
+        createLogger().info(`\nComponent [${this.componentPath}] ignore`);
+      }
     } else {
       await Promise.all([
         options.onRegistJsFileCallback(`${this.componentPath}.js`),

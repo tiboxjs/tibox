@@ -1,5 +1,6 @@
 import { InlineConfig, resolveConfig } from "../config";
 import chokidar from "chokidar";
+import ora from "ora";
 // import { createLogger } from "../logger";
 import chalk from "chalk";
 // import wxmlTask from "./taskWxml";
@@ -53,6 +54,7 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
   // const resolvedPath = path.resolve(root, "src/");
   // logger.info(chalk.green(`resolvedPath: ${resolvedPath}`));
 
+  const spinner = ora("解析配置文件...").start();
   const config = await resolveConfig(
     inlineConfig,
     "dev",
@@ -60,6 +62,7 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
     "production"
   );
 
+  spinner.text = "处理ext文件";
   // TODO: ext.js的处理，还得优化，暂时让小程序跑起来
   await fs.ensureDir(
     path.resolve(config.root, config.determinedDestDir, "ext")
@@ -75,10 +78,13 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
     )
   );
 
+  spinner.text = "解析项目目录文件";
   const parseResult = await parse(config);
+  spinner.text = "解析小程序文件依赖关系";
   await parseResult.taskManager.handle();
   const allValidDestFiles = parseResult.taskManager.destPaths();
 
+  spinner.text = `扫描${config.determinedDestDir}目录无用文件`;
   const allDestFiles = _.map(
     await parseDir(path.resolve(config.root, config.determinedDestDir), {
       recursive: true,
@@ -90,11 +96,10 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
 
   const unuseFiles = _.pull(allDestFiles, ...allValidDestFiles);
   if (unuseFiles.length) {
-    createLogger().info(
-      chalk.yellowBright(
-        `移除unuseFiles: ${JSON.stringify(unuseFiles, null, 2)}`
-      )
-    );
+    spinner.info("移除无用文件");
+    _.forEach(unuseFiles, (item) => {
+      spinner.info(item);
+    });
     await Promise.all(
       _.map(unuseFiles, (unuseItem) =>
         prune(path.resolve(config.root, config.determinedDestDir, unuseItem))
@@ -120,7 +125,11 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
       await parseResult.taskManager.handle();
     })
     .on("ready", () => {
-      createLogger().info(chalk.greenBright("初始化完成，开始监听..."));
+      spinner.succeed("初始化完成，开始监听...");
+    })
+    .on("error", (error) => {
+      spinner.warn(error.stack);
+      spinner.fail(error.message);
     });
   // .on("add", (ppath) => {
   //   // handleFile("add", ppath);
