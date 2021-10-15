@@ -1,6 +1,5 @@
 import debug from "debug";
 // import chalk from 'chalk'
-import { readdir } from "fs/promises";
 import fs, { constants } from "fs-extra";
 import os from "os";
 import path from "path";
@@ -591,7 +590,7 @@ export async function parseDir(
     if (stat.isFile()) {
       return [path.resolve(pathDir)];
     } else {
-      const readDirResult = await readdir(pathDir);
+      const readDirResult = await fs.promises.readdir(pathDir);
       if (recursive) {
         let result: string[] = [];
         for (const item of readDirResult) {
