@@ -79,7 +79,6 @@
     // "declaration": true,
     "noImplicitOverride": true,
     // "noUnusedLocals": true,
-    // "esModuleInterop": true
   },
   "exclude": [
     "lib",

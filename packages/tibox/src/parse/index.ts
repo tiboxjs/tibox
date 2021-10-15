@@ -10,9 +10,6 @@ import chalk from "chalk";
 // import loadJsonFile from "load-json-file";
 import { TaskManager } from "../task/taskManager";
 import { parseDir } from "../utils";
-// import { MiniProgramPage } from "./page";
-// import { parseComponents } from "./component";
-// import { SubPackage } from "./subPackage";
 
 /**
  * 解析过后，返回给dev或者build的结果，供后续跟踪
@@ -98,6 +95,11 @@ export class WxssFile implements TFile {
   }
 }
 
+/**
+ *
+ * @param resolvedConfig 解析完成的配置
+ * @returns 小程序全解析后的结果
+ */
 export async function parse(
   resolvedConfig: ResolvedConfig
 ): Promise<ParseResult> {
@@ -137,6 +139,7 @@ async function doParse(resolvedConfig: ResolvedConfig): Promise<ParseResult> {
       await parseDir(item, { recursive: true })
     );
   }
+  // 过滤掉我们并不想跟踪的文件
   parseResult = _.filter(parseResult, (item) => !ignoreFiles.test(item));
   parseResult = _.map(parseResult, (item) =>
     path.relative(resolvedConfig.root, item)
