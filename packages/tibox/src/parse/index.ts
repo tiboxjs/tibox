@@ -146,7 +146,7 @@ async function doParse(resolvedConfig: ResolvedConfig): Promise<ParseResult> {
   );
 
   const { taskManager } = await parseMiniProgram(resolvedConfig);
-  logger.info(chalk.blueBright(`allFiles: ${parseResult.length}`));
+  // logger.info(chalk.blueBright(`allFiles: ${parseResult.length}`));
   const unTrackedFiles = _.pull(parseResult, ...taskManager.files());
 
   // const trackedFiles = taskManager.files();
@@ -155,10 +155,14 @@ async function doParse(resolvedConfig: ResolvedConfig): Promise<ParseResult> {
   // );
 
   if (unTrackedFiles.length) {
-    logger.info(chalk.green(`unTrackedFiles: ${unTrackedFiles.length}`));
     logger.info(
-      chalk.green(`unTrackedFiles: ${JSON.stringify(unTrackedFiles, null, 2)}`)
+      chalk.yellow(
+        `发现以下${unTrackedFiles.length}个文件存在于项目中，但是并未被引用。请检查依赖关系是否正确，在依赖关系被解决前TiBox不会对这些文件做处理`
+      )
     );
+    _.forEach(unTrackedFiles, (item, index) => {
+      logger.info(chalk.yellow(`  ${index + 1}. ${item}`));
+    });
   }
   return { taskManager };
 }

@@ -118,6 +118,9 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
     .on("all", async (event, ppath) => {
       createLogger().info(chalk.greenBright(`${event}, ${ppath}`));
       await parseResult.taskManager.handle();
+    })
+    .on("ready", () => {
+      createLogger().info(chalk.greenBright("初始化完成，开始监听..."));
     });
   // .on("add", (ppath) => {
   //   // handleFile("add", ppath);

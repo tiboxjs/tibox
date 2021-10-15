@@ -18,6 +18,7 @@ importers:
       '@commitlint/config-conventional': ^12.1.4
       '@nodelib/fs.scandir': ^2.1.5
       '@types/debug': ^4.1.7
+      '@types/figlet': ^1.5.4
       '@types/fs-extra': ^9.0.13
       '@types/lodash': ^4.14.175
       '@types/node': '*'
@@ -34,6 +35,7 @@ importers:
       dotenv-expand: ^5.1.0
       esbuild: ^0.12.29
       eslint: ^7.32.0
+      figlet: ^1.5.2
       fs-extra: ^10.0.0
       load-json-file: ^6.2.0
       lodash: ^4.17.21
@@ -45,6 +47,7 @@ importers:
       typescript: ^4.4.4
     dependencies:
       '@nodelib/fs.scandir': 2.1.5
+      '@types/figlet': 1.5.4
       cac: 6.7.11
       chalk: 4.1.2
       chokidar: 3.5.2
@@ -53,6 +56,7 @@ importers:
       dotenv: 10.0.0
       dotenv-expand: 5.1.0
       esbuild: 0.12.29
+      figlet: 1.5.2
       fs-extra: 10.0.0
       load-json-file: 6.2.0
       lodash: 4.17.21
@@ -2082,6 +2086,10 @@ packages:
     dependencies:
       '@types/ms': 0.7.31
     dev: true
+
+  /@types/figlet/1.5.4:
+    resolution: {integrity: sha512-cskPTju7glYgzvkJy/hftqw7Fen3fsd0yrPOqcbBLJu+YdDQuA438akS1g+2XVKGzsQOnXGV2I9ePv6xUBnKMQ==}
+    dev: false
 
   /@types/fs-extra/9.0.13:
     resolution: {integrity: sha512-nEnwB++1u5lVDM2UI4c1+5R+FYaKfaAzS4OococimjVm3nQw3TuzH5UNsocrcTBbhnerblyHj4A49qXbIiZdpA==}
@@ -4440,6 +4448,11 @@ packages:
     dependencies:
       reusify: 1.0.4
     dev: true
+
+  /figlet/1.5.2:
+    resolution: {integrity: sha512-WOn21V8AhyE1QqVfPIVxe3tupJacq1xGkPTB4iagT6o+P2cAgEOOwIxMftr4+ZCTI6d551ij9j61DFr0nsP2uQ==}
+    engines: {node: '>= 0.4.0'}
+    dev: false
 
   /figures/2.0.0:
     resolution: {integrity: sha1-OrGi0qYsi/tDGgyUy3l6L84nyWI=}

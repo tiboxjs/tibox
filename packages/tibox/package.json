@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "@nodelib/fs.scandir": "^2.1.5",
+    "@types/figlet": "^1.5.4",
     "cac": "^6.7.11",
     "chalk": "^4.1.2",
     "chokidar": "^3.5.2",
@@ -35,6 +36,7 @@
     "dotenv": "^10.0.0",
     "dotenv-expand": "^5.1.0",
     "esbuild": "^0.12.29",
+    "figlet": "^1.5.2",
     "fs-extra": "^10.0.0",
     "load-json-file": "^6.2.0",
     "lodash": "^4.17.21",
