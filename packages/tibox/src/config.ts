@@ -261,7 +261,10 @@ export async function resolveConfig(
      */
     dependencies: packageJson.dependencies,
     isDependencies: (name) => {
-      return _.some(packageJson.dependencies, (item, key) => key === name);
+      return _.some(
+        packageJson.dependencies,
+        (item, key) => key === name.replace(/\\/, "/")
+      );
     },
     project: config.project || "newProject",
     product: config.product || "default",
