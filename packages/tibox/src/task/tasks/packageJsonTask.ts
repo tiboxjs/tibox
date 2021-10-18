@@ -11,6 +11,7 @@ import npminstall from "npminstall";
 import Context from "npminstall/lib/context";
 
 import _ from "lodash";
+import { isWindows } from "../../utils";
 
 export class PackageJsonTask extends SingleTask {
   public async init(options: ITaskManager): Promise<void> {
@@ -54,7 +55,9 @@ export class PackageJsonTask extends SingleTask {
               if (this.config.command === "dev") {
                 return new Promise((resolve, reject) => {
                   exec(
-                    `cli build-npm --project "${path.resolve(
+                    `${
+                      isWindows ? "cli.bat" : "cli"
+                    } build-npm --project "${path.resolve(
                       this.config.root,
                       this.config.determinedDestDir
                     )}"`,
