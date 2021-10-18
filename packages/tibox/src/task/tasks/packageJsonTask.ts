@@ -7,6 +7,10 @@ import { createLogger } from "../../logger";
 import { exec } from "child_process";
 import chalk from "chalk";
 import { isNeedHandle } from "../../watcher";
+import npminstall from "npminstall";
+import Context from "npminstall/lib/context";
+
+import _ from "lodash";
 
 export class PackageJsonTask extends SingleTask {
   public async init(options: ITaskManager): Promise<void> {
@@ -36,27 +40,15 @@ export class PackageJsonTask extends SingleTask {
               });
             })
             .then(() => {
-              return new Promise((resolve, reject) => {
-                const yarnCMDOptions = [
-                  "--prefer-offline",
-                  "--registry=http://registry.npm.manwei.com",
-                ];
-                exec(
-                  `cnpm i --production ${yarnCMDOptions.join(" ")}`,
-                  {
-                    cwd: this.config.determinedDestDir,
-                    timeout: 60000,
-                  },
-                  (err) => {
-                    if (err) {
-                      createLogger().error(chalk.red(err));
-                      reject(err);
-                    } else {
-                      resolve("");
-                    }
-                  }
-                );
-              });
+              return npminstall(
+                {
+                  root: this.config.determinedDestDir,
+                  registry: "http://registry.npm.manwei.com",
+                  production: true,
+                  trace: false,
+                },
+                new Context()
+              );
             })
             .then(() => {
               if (this.config.command === "dev") {
