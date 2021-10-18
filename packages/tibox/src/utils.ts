@@ -522,7 +522,7 @@ export async function matchImportJsFile(
     encoding: "utf-8",
   });
   const matchedResult = fileContent.match(
-    /(?<=^((import|export) ((.|\n)* from )?|.*require\()[\'\"]).*(?=[\'\"]\)?;?)/gm
+    /(?<=^((import|export) ((.|\r?\n)* from )?|.*require\()[\'\"]).*(?=[\'\"]\)?;?)/gm
   );
   return matchedResult;
 }
