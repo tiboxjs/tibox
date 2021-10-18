@@ -54,10 +54,18 @@ export class PackageJsonTask extends SingleTask {
             .then(() => {
               if (this.config.command === "dev") {
                 return new Promise((resolve, reject) => {
+                  let cliCMD = isWindows ? "cli.bat" : "cli";
+                  if (
+                    process.env.WETOOLS_HOME &&
+                    typeof process.env.WETOOLS_HOME === "string"
+                  ) {
+                    cliCMD = path.join(
+                      process.env.WETOOLS_HOME,
+                      `${isWindows ? "cli.bat" : "cli"}`
+                    );
+                  }
                   exec(
-                    `${
-                      isWindows ? "cli.bat" : "cli"
-                    } build-npm --project "${path.resolve(
+                    `${cliCMD} build-npm --project "${path.resolve(
                       this.config.root,
                       this.config.determinedDestDir
                     )}"`,
@@ -67,6 +75,7 @@ export class PackageJsonTask extends SingleTask {
                         createLogger().error(chalk.red(err));
                         reject(err);
                       } else {
+                        createLogger().info(chalk.green("cli build success"));
                         resolve();
                       }
                     }
