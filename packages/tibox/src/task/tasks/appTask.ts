@@ -48,7 +48,9 @@ export class AppTask extends MultiTask {
     );
     // 解析主包下的pages
     await Promise.all(
-      _.map(appJson.pages, (item) => options.onRegistPageCallback(item))
+      _.map(appJson.pages, (item) =>
+        options.onRegistPageCallback(path.join("", item))
+      )
     );
 
     // 解析分包下的pages
