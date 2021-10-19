@@ -73,6 +73,12 @@
     "forceConsistentCasingInFileNames": true,        /* Disallow inconsistently-cased references to the same file. */
     "stripInternal": true,
     "pretty": true,
+    // "target": "ES2018",
+    // "moduleResolution": "node",
+    // "strict": true,
+    // "declaration": true,
+    "noImplicitOverride": true,
+    // "noUnusedLocals": true,
   },
   "exclude": [
     "lib",

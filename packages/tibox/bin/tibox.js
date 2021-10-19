@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
-// import chalk from 'chalk'
+global.__tibox_start_time = Date.now();
 
-// console.log(chalk.green('hello world'))
-
-// 将构建目录(lib)下的 index.js 作为脚手架的入口
-require('../lib/index')
+// 将构建目录(lib)下的 cli.js 作为脚手架的入口
+function start() {
+  require("../lib/cli");
+}
+start();

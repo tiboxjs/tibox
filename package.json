@@ -7,6 +7,18 @@
     "packages/*"
   ],
   "scripts": {
-    "debug": "cd packages/tibox && yarn dev"
+    "debug": "cd packages/tibox && yarn dev",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:serve": "vitepress serve docs"
+  },
+  "devDependencies": {
+    "eslint-define-config": "^1.1.1",
+    "eslint-plugin-node": "^11.1.0",
+    "vitepress": "^0.16.1"
+  },
+  "engines": {
+    "node": ">=12.0.0",
+    "pnpm": ">=6.0.0"
   }
 }

@@ -1,4 +1,5 @@
 node_modules/
+packages/tibox/lib
 
 yarn-error.log
 package-lock.json
