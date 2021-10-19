@@ -2,22 +2,22 @@ import _ from "lodash";
 import { ITaskManager } from ".";
 
 import { ResolvedConfig } from "..";
-import { AppTask } from "./tasks/appTask";
-import { ComponentTask } from "./tasks/componentTask";
-import { ImageTask } from "./tasks/imageTask";
-import { JsonTask } from "./tasks/jsonTask";
-import { JsTask } from "./tasks/jsTask";
-import { PageTask } from "./tasks/pageTask";
-import { ProjectConfigTask } from "./tasks/projectConfigTask";
+import { AppTask } from "./app/appTask";
+import { ComponentTask } from "./app/componentTask";
+import { ImageTask } from "./app/imageTask";
+import { JsonTask } from "./app/jsonTask";
+import { JsTask } from "./app/jsTask";
+import { PageTask } from "./app/pageTask";
+import { ProjectConfigTask } from "./app/projectConfigTask";
 import { Task } from "./task";
-import { WxmlTask } from "./tasks/wxmlTask";
-import { WxssTask } from "./tasks/wxssTask";
-import { PackageJsonTask } from "./tasks/packageJsonTask";
+import { WxmlTask } from "./app/wxmlTask";
+import { WxssTask } from "./app/wxssTask";
+import { PackageJsonTask } from "./app/packageJsonTask";
 import path from "path";
 import { absolute2Relative } from "../utils";
 // import { createLogger } from "../logger";
 // import chalk from "chalk";
-import { SitemapTask } from "./tasks/sitemapTask";
+import { SitemapTask } from "./app/sitemapTask";
 
 /**
  * 根节点任务

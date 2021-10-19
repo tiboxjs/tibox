@@ -1,13 +1,13 @@
 // class TTask {}
 
-import { ComponentTask } from "./tasks/componentTask";
-import { JsonTask } from "./tasks/jsonTask";
-import { JsTask } from "./tasks/jsTask";
-import { PageTask } from "./tasks/pageTask";
+import { ComponentTask } from "./app/componentTask";
+import { JsonTask } from "./app/jsonTask";
+import { JsTask } from "./app/jsTask";
+import { PageTask } from "./app/pageTask";
 import { Task } from "./task";
-import { WxmlTask } from "./tasks/wxmlTask";
-import { WxssTask } from "./tasks/wxssTask";
-import { ImageTask } from "./tasks/imageTask";
+import { WxmlTask } from "./app/wxmlTask";
+import { WxssTask } from "./app/wxssTask";
+import { ImageTask } from "./app/imageTask";
 
 export type OnRegistPageCallback = (pagePath: string) => Promise<PageTask>;
 
