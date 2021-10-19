@@ -64,6 +64,7 @@ export class PackageJsonTask extends SingleTask {
                       `${isWindows ? "cli.bat" : "cli"}`
                     );
                   }
+                  const time = Date.now();
                   exec(
                     `${cliCMD} build-npm --project "${path.resolve(
                       this.config.root,
@@ -75,7 +76,9 @@ export class PackageJsonTask extends SingleTask {
                         createLogger().error(chalk.red(err));
                         reject(err);
                       } else {
-                        createLogger().info(chalk.green("cli build success"));
+                        createLogger().info(
+                          chalk.green(`构建npm包成功 ${Date.now() - time}ms`)
+                        );
                         resolve();
                       }
                     }
