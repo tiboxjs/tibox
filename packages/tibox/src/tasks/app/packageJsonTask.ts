@@ -1,6 +1,6 @@
 // import { createLogger } from "../logger";
 import { ITaskManager } from "..";
-import { Context, Task } from "../task";
+import { Context as TContext, Task } from "../task";
 import fs from "fs-extra";
 import path from "path";
 import { createLogger } from "../../logger";
@@ -8,12 +8,12 @@ import { exec } from "child_process";
 import chalk from "chalk";
 import { isNeedHandle } from "../../watcher";
 import npminstall from "npminstall";
-import * as NpmInstallContext from "npminstall/lib/context";
+import Context from "npminstall/lib/context";
 import _ from "lodash";
-import { cmdCli } from "../../utils";
+import { cmdCli, cmdCliFaid } from "../../utils";
 
 export class PackageJsonTask extends Task {
-  constructor(context: Context) {
+  constructor(context: TContext) {
     super(context, "package.json");
   }
   public id(): string {
@@ -62,7 +62,7 @@ export class PackageJsonTask extends Task {
                   production: true,
                   trace: false,
                 },
-                new NpmInstallContext()
+                new Context()
               );
             })
             .then(() => {
@@ -75,17 +75,15 @@ export class PackageJsonTask extends Task {
                       this.context.config.root,
                       this.context.config.determinedDestDir
                     )}"`,
-                    { timeout: 60000 },
+                    { timeout: 30000 },
                     (err) => {
-                      if (err) {
-                        createLogger().error(chalk.red(err));
-                        reject(err);
-                      } else {
+                      cmdCliFaid(err);
+                      if (!err) {
                         createLogger().info(
                           chalk.green(`构建npm包成功 ${Date.now() - time}ms`)
                         );
-                        resolve();
                       }
+                      resolve();
                     }
                   );
                 });

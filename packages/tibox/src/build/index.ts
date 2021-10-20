@@ -1,13 +1,11 @@
-import chalk from "chalk";
 import path from "path";
 import { InlineConfig, resolveConfig } from "../config";
 import { parse } from "../parse";
 // import { TaskOptions } from "../libs/options";
-import { createLogger } from "../logger";
 import _ from "lodash";
-import { parseDir, prune } from "../utils";
 import fs from "fs-extra";
 import os from "os";
+import ora from "ora";
 export interface BuildOptions {
   // /**
   //  * Base public path when served in production.
@@ -183,17 +181,6 @@ export async function build(
 }
 
 async function doBuild(inlineConfig: InlineConfig = {}): Promise<BuildOutput> {
-  // const logger = createLogger(inlineConfig.logLevel);
-  // // One-liner for current directory
-  // const root = inlineConfig.root || ".";
-  // 不监听 package.json、tibox.config.js、.env.*
-  // const needWatches = [
-  //   "src/",
-  //   "project.config.json" /* , "tailwind.config.js", "tailwind/", "svg/" */,
-  // ];
-  // const resolvedPath = path.resolve(root, "src/");
-  // logger.info(chalk.green(`resolvedPath: ${resolvedPath}`));
-
   const config = await resolveConfig(
     inlineConfig,
     "build",
@@ -217,36 +204,35 @@ async function doBuild(inlineConfig: InlineConfig = {}): Promise<BuildOutput> {
   );
 
   const parseResult = await parse(config);
-  await parseResult.taskManager.handle();
+  await parseResult.taskManager.handle(ora());
 
-  const allValidDestFiles = _.map(parseResult.taskManager.wholeTask, (task) =>
-    path.join(config.root, task.filePath)
-  );
+  // const allValidDestFiles = _.map(parseResult.taskManager.wholeTask, (task) =>
+  //   path.join(config.root, task.filePath)
+  // );
 
-  const allDestFiles = _.map(
-    await parseDir(path.resolve(config.root, config.determinedDestDir), {
-      recursive: true,
-      ignore: /(node_modules|miniprogram_npm)/,
-    }),
-    (filePath: string) =>
-      path.relative(path.join(config.root, config.determinedDestDir), filePath)
-  );
+  // const allDestFiles = _.map(
+  //   await parseDir(path.resolve(config.root, config.determinedDestDir), {
+  //     recursive: true,
+  //     ignore: /(node_modules|miniprogram_npm)/,
+  //   }),
+  //   (filePath: string) =>
+  //     path.relative(path.join(config.root, config.determinedDestDir), filePath)
+  // );
 
-  const unuseFiles = _.pull(allDestFiles, ...allValidDestFiles);
-  if (unuseFiles.length) {
-    createLogger().info(
-      chalk.yellowBright(
-        `移除unuseFiles: ${JSON.stringify(unuseFiles, null, 2)}`
-      )
-    );
-    await Promise.all(
-      _.map(unuseFiles, (unuseItem) =>
-        prune(path.resolve(config.root, config.determinedDestDir, unuseItem))
-      )
-    );
-  }
+  // const unuseFiles = _.pull(allDestFiles, ...allValidDestFiles);
+  // if (unuseFiles.length) {
+  //   createLogger().info(
+  //     chalk.yellowBright(
+  //       `移除unuseFiles: ${JSON.stringify(unuseFiles, null, 2)}`
+  //     )
+  //   );
+  //   await Promise.all(
+  //     _.map(unuseFiles, (unuseItem) =>
+  //       prune(path.resolve(config.root, config.determinedDestDir, unuseItem))
+  //     )
+  //   );
+  // }
 
-  parseResult.taskManager.handle();
   return {};
 }
 

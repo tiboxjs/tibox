@@ -115,7 +115,8 @@ cli
   .command("upload [root]", "上传小程序")
   .option("--private-key-path <privateKeyPath>", "指定一个privateKeyPath参数")
   .option("--desc <desc>", "指定一个版本描述")
-  .option("--robot <robot>", "指定使用哪一个 ci 机器人，可选值：1 ~ 30") // TODO: 1~30未做校验
+  // TODO: 1~30未做校验
+  .option("--robot <robot>", "指定使用哪一个 ci 机器人，可选值：1 ~ 30")
   .action(async (root: string, options: UploadOptions & GlobalCLIOptions) => {
     createLogger(options.logLevel).warn(
       chalk.green(`root:${root}, options:${JSON.stringify(options, null, 2)}`)

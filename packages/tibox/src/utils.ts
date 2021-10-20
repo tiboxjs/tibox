@@ -3,8 +3,10 @@ import debug from "debug";
 import fs, { constants } from "fs-extra";
 import os from "os";
 import path from "path";
-import { LogLevel } from "./logger";
+import { createLogger, LogLevel } from "./logger";
 import _ from "lodash";
+import { Context, Task } from "./tasks/task";
+import chalk from "chalk";
 // import { pathToFileURL, URL } from 'url'
 // import { FS_PREFIX, DEFAULT_EXTENSIONS, VALID_ID_PREFIX } from './constants'
 // import resolve from 'resolve'
@@ -669,4 +671,78 @@ export function cmdCli(): string {
     );
   }
   return cliCMD;
+}
+
+export function cmdCliFaid(err: Error | null): void {
+  if (err && /(command not found)/.test(err.message)) {
+    createLogger().info(
+      chalk.bgRed(
+        `未能检测到微信开发者命令行工具，请设置环境变量WETOOLS_HOME，指向开发者工具安装目录${
+          isWindows
+            ? "(例如：C:\\Program Files (x86)\\Tencent\\微信web开发者工具)"
+            : "(例如：/Applications/wechatwebdevtools.app/Contents/MacOS)"
+        }`
+      )
+    );
+  }
+}
+
+export async function traceOutUnuse(
+  context: Context,
+  wholeTask: Record<string, Task>
+): Promise<void> {
+  const logger = createLogger(context.config.logLevel);
+  /**
+   * 项目下需要监听的所有文件
+   */
+  const needWatches = [
+    "src/",
+    "project.config.json",
+    // TODO: tailwind和svg目录后续处理
+    // "tailwind.config.js",
+    // "tailwind/",
+    // "svg/",
+  ];
+
+  const ignoreFiles: RegExp = /\.DS_Store/;
+
+  /**
+   * 解析结果
+   */
+  let parseResult: string[] = [];
+  for (const item of _.map(needWatches, (item) =>
+    path.resolve(context.config.root, item)
+  )) {
+    parseResult = _.concat(
+      parseResult,
+      await parseDir(item, { recursive: true })
+    );
+  }
+  // 过滤掉我们并不想跟踪的文件
+  parseResult = _.filter(parseResult, (item) => !ignoreFiles.test(item));
+  parseResult = _.map(parseResult, (item) =>
+    path.relative(context.config.root, item)
+  );
+
+  // logger.info(chalk.blueBright(`allFiles: ${parseResult.length}`));
+  const unTrackedFiles = _.pull(
+    parseResult,
+    ..._.map(wholeTask, (task) => task.relativeToRootPath)
+  );
+
+  // const trackedFiles = taskManager.files();
+  // logger.info(
+  //   chalk.blueBright(`trackedFiles: ${JSON.stringify(trackedFiles, null, 2)}`)
+  // );
+
+  if (unTrackedFiles.length) {
+    logger.info(
+      chalk.yellow(
+        `\n发现以下${unTrackedFiles.length}个文件存在于项目中，但是并未被引用。请检查依赖关系是否正确，在依赖关系被解决前TiBox不会对这些文件做处理`
+      )
+    );
+    _.forEach(unTrackedFiles, (item, index) => {
+      logger.info(chalk.yellow(`  ${index + 1}. ${item}`));
+    });
+  }
 }

@@ -13,16 +13,17 @@ import { WxmlTask } from "./app/wxmlTask";
 import { WxssTask } from "./app/wxssTask";
 import { PackageJsonTask } from "./app/packageJsonTask";
 import path from "path";
-import { absolute2Relative } from "../utils";
+import { absolute2Relative, parseDir, prune } from "../utils";
 // import { createLogger } from "../logger";
 // import chalk from "chalk";
 import { SitemapTask } from "./app/sitemapTask";
+import ora from "ora";
 
 /**
  * 根节点任务
  */
 export class TaskManager implements ITaskManager {
-  private context: Context;
+  context: Context;
   wholeTask: Record<string, Task>;
   public constructor(context: Context) {
     this.context = context;
@@ -36,12 +37,12 @@ export class TaskManager implements ITaskManager {
     }
     let pageTask = new PageTask(this.context, pagePath);
 
-    const findResult = this.wholeTask[pagePath];
+    const findResult = this.wholeTask[pageTask.relativeToRootPath];
     if (findResult) {
       pageTask = findResult as PageTask;
     } else {
       await pageTask.dispatchInit(this as unknown as ITaskManager);
-      this.wholeTask[pagePath] = pageTask;
+      this.wholeTask[pageTask.relativeToRootPath] = pageTask;
     }
 
     return pageTask;
@@ -61,12 +62,12 @@ export class TaskManager implements ITaskManager {
     }
     let componentTask = new ComponentTask(this.context, componentPath);
 
-    const findResult = this.wholeTask[componentPath];
+    const findResult = this.wholeTask[componentTask.relativeToRootPath];
     if (findResult) {
       componentTask = findResult as ComponentTask;
     } else {
       await componentTask.dispatchInit(this as unknown as ITaskManager);
-      this.wholeTask[componentPath] = componentTask;
+      this.wholeTask[componentTask.relativeToRootPath] = componentTask;
     }
 
     return componentTask;
@@ -76,12 +77,12 @@ export class TaskManager implements ITaskManager {
     // createLogger().info(chalk.grey(`onRegistJsFileCallback: ${jsFilePath}`));
     let jsTask = new JsTask(this.context, jsFilePath);
 
-    const findResult = this.wholeTask[jsFilePath];
+    const findResult = this.wholeTask[jsTask.relativeToRootPath];
     if (findResult) {
       jsTask = findResult as JsTask;
     } else {
       await jsTask.dispatchInit(this as unknown as ITaskManager);
-      this.wholeTask[jsFilePath] = jsTask;
+      this.wholeTask[jsTask.relativeToRootPath] = jsTask;
     }
 
     return jsTask;
@@ -95,12 +96,12 @@ export class TaskManager implements ITaskManager {
     // );
     let jsonTask = new JsonTask(this.context, jsonFilePath);
 
-    const findResult = this.wholeTask[jsonFilePath];
+    const findResult = this.wholeTask[jsonTask.relativeToRootPath];
     if (findResult) {
       jsonTask = findResult as JsonTask;
     } else {
       await jsonTask.dispatchInit(this as unknown as ITaskManager);
-      this.wholeTask[jsonFilePath] = jsonTask;
+      this.wholeTask[jsonTask.relativeToRootPath] = jsonTask;
     }
 
     return jsonTask;
@@ -114,12 +115,12 @@ export class TaskManager implements ITaskManager {
     // );
     let wxmlTask = new WxmlTask(this.context, wxmlFilePath);
 
-    const findResult = this.wholeTask[wxmlFilePath];
+    const findResult = this.wholeTask[wxmlTask.relativeToRootPath];
     if (findResult) {
       wxmlTask = findResult as WxmlTask;
     } else {
       await wxmlTask.dispatchInit(this as unknown as ITaskManager);
-      this.wholeTask[wxmlFilePath] = wxmlTask;
+      this.wholeTask[wxmlTask.relativeToRootPath] = wxmlTask;
     }
 
     return wxmlTask;
@@ -129,12 +130,12 @@ export class TaskManager implements ITaskManager {
     // createLogger().info(chalk.grey(`onRegistWxssFileCallback: ${wxssPath}`));
     let wxssTask = new WxssTask(this.context, wxssPath);
 
-    const findResult = this.wholeTask[wxssPath];
+    const findResult = this.wholeTask[wxssTask.relativeToRootPath];
     if (findResult) {
       wxssTask = findResult as WxssTask;
     } else {
       await wxssTask.dispatchInit(this as unknown as ITaskManager);
-      this.wholeTask[wxssPath] = wxssTask;
+      this.wholeTask[wxssTask.relativeToRootPath] = wxssTask;
     }
 
     return wxssTask;
@@ -148,12 +149,12 @@ export class TaskManager implements ITaskManager {
     // );
     let imageTask = new ImageTask(this.context, imageFilePath);
 
-    const findResult = this.wholeTask[imageFilePath];
+    const findResult = this.wholeTask[imageTask.relativeToRootPath];
     if (findResult) {
       imageTask = findResult as ImageTask;
     } else {
       await imageTask.dispatchInit(this as unknown as ITaskManager);
-      this.wholeTask[imageFilePath] = imageTask;
+      this.wholeTask[imageTask.relativeToRootPath] = imageTask;
     }
 
     return imageTask;
@@ -162,27 +163,58 @@ export class TaskManager implements ITaskManager {
    * 初始化任务
    */
   public async init(): Promise<void> {
-    // TODO: 放在一个Promise.all 里，一起异步初始化(init)
+    this.wholeTask = {};
     const appTask = new AppTask(this.context);
-    await appTask.dispatchInit(this);
-    this.wholeTask["app"] = appTask;
-
     const projectConfigTask = new ProjectConfigTask(this.context);
-    await projectConfigTask.dispatchInit(this);
-    this.wholeTask["project.config.json"] = projectConfigTask;
-
     const sitemapTask = new SitemapTask(this.context);
-    await sitemapTask.dispatchInit(this);
-    this.wholeTask["sitemap.json"] = sitemapTask;
-
     const packageJsonTask = new PackageJsonTask(this.context);
-    await packageJsonTask.dispatchInit(this);
-    this.wholeTask["package.json"] = sitemapTask;
+
+    await Promise.all([
+      appTask.dispatchInit(this),
+      projectConfigTask.dispatchInit(this),
+      sitemapTask.dispatchInit(this),
+      packageJsonTask.dispatchInit(this),
+    ]);
+
+    this.wholeTask[appTask.relativeToRootPath] = appTask;
+    this.wholeTask[projectConfigTask.relativeToRootPath] = projectConfigTask;
+    this.wholeTask[sitemapTask.relativeToRootPath] = sitemapTask;
+    this.wholeTask[packageJsonTask.relativeToRootPath] = packageJsonTask;
   }
 
-  public async handle(): Promise<void> {
+  public async handle(spinner: ora.Ora): Promise<void> {
     await Promise.all(
       _.map(this.wholeTask, (task) => task.dispatchHandle(this))
     );
+
+    const config = this.context.config;
+    spinner.text = "解析小程序文件依赖关系";
+    const allValidDestFiles = _.map(this.wholeTask, (task) => task.filePath);
+
+    spinner.text = `扫描${config.determinedDestDir}目录无用文件`;
+    const allDestFiles = _.map(
+      await parseDir(path.resolve(config.root, config.determinedDestDir), {
+        recursive: true,
+        ignore: /(node_modules|miniprogram_npm)/,
+      }),
+      (filePath: string) =>
+        path.relative(
+          path.join(config.root, config.determinedDestDir),
+          filePath
+        )
+    );
+
+    const unuseFiles = _.pull(allDestFiles, ...allValidDestFiles);
+    if (unuseFiles.length) {
+      spinner.info("移除无用文件");
+      _.forEach(unuseFiles, (item) => {
+        spinner.info(item);
+      });
+      await Promise.all(
+        _.map(unuseFiles, (unuseItem) =>
+          prune(path.resolve(config.root, config.determinedDestDir, unuseItem))
+        )
+      );
+    }
   }
 }

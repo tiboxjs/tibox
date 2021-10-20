@@ -1,11 +1,9 @@
 import { InlineConfig, resolveConfig } from "../config";
 import chokidar from "chokidar";
 import ora from "ora";
-import chalk from "chalk";
 import _ from "lodash";
 import { parse } from "../parse";
-import { createLogger } from "../logger";
-import { cmdCli, parseDir, prune } from "../utils";
+import { cmdCli, traceOutUnuse } from "../utils";
 import path from "path";
 import fs from "fs-extra";
 import os from "os";
@@ -74,41 +72,16 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
 
   spinner.text = "解析项目目录文件";
   const parseResult = await parse(config);
-  spinner.text = "解析小程序文件依赖关系";
-  await parseResult.taskManager.handle();
-  const allValidDestFiles = _.map(
-    parseResult.taskManager.wholeTask,
-    (task) => task.filePath
-  );
-
-  spinner.text = `扫描${config.determinedDestDir}目录无用文件`;
-  const allDestFiles = _.map(
-    await parseDir(path.resolve(config.root, config.determinedDestDir), {
-      recursive: true,
-      ignore: /(node_modules|miniprogram_npm)/,
-    }),
-    (filePath: string) =>
-      path.relative(path.join(config.root, config.determinedDestDir), filePath)
-  );
-
-  const unuseFiles = _.pull(allDestFiles, ...allValidDestFiles);
-  if (unuseFiles.length) {
-    spinner.info("移除无用文件");
-    _.forEach(unuseFiles, (item) => {
-      spinner.info(item);
-    });
-    await Promise.all(
-      _.map(unuseFiles, (unuseItem) =>
-        prune(path.resolve(config.root, config.determinedDestDir, unuseItem))
-      )
-    );
-  }
 
   const debounceFunction = debounce(250, false, async () => {
-    const start = Date.now();
     const watchingSpinner = ora("处理中...").start();
-    await parseResult.taskManager.handle();
-    watchingSpinner.succeed(`完成 ${Date.now() - start}ms`);
+    const start = Date.now();
+
+    await parseResult.taskManager.init();
+
+    await parseResult.taskManager.handle(watchingSpinner);
+
+    watchingSpinner.succeed(`处理完成 耗时 ${Date.now() - start}ms`);
   });
 
   chokidar
@@ -121,26 +94,29 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
           "**/simpleService.d.ts",
           "**/simpleService.js",
         ],
-        ignoreInitial: true,
+        cwd: config.root,
+        // ignoreInitial: true,
       }
     )
-    .on("all", async (event, ppath) => {
-      createLogger().info(chalk.grey(`${event}, ${ppath}`));
+    .on("all", async (event, filePath) => {
+      // createLogger().info(chalk.grey(`${event}, ${ppath}`));
       await debounceFunction();
-      // await parseResult.taskManager.handle();
     })
-    .on("ready", () => {
+    .on("ready", async () => {
+      await traceOutUnuse(
+        parseResult.taskManager.context,
+        parseResult.taskManager.wholeTask
+      );
       spinner.succeed("初始化完成，开始监听...");
       const cliCMD = cmdCli();
       const cmd = `${cliCMD} open --project "${path.resolve(
         config.root,
         config.determinedDestDir
       )}"`;
-      const cliSpinner = ora("正在启动开发工具:" + cmd).start();
+      const cliSpinner = ora("正在启动开发工具...").start();
       exec(cmd, { timeout: 10000 }, (err) => {
         if (err) {
-          cliSpinner.fail(err.message);
-          createLogger().error(chalk.red(err));
+          cliSpinner.fail("微信开发者工具未能自动启动");
         } else {
           cliSpinner.succeed("开发工具启动完成");
         }
