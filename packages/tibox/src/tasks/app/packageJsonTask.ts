@@ -1,6 +1,6 @@
 // import { createLogger } from "../logger";
 import { ITaskManager } from "..";
-import { SingleTask } from "../task";
+import { Context, Task } from "../task";
 import fs from "fs-extra";
 import path from "path";
 import { createLogger } from "../../logger";
@@ -8,17 +8,31 @@ import { exec } from "child_process";
 import chalk from "chalk";
 import { isNeedHandle } from "../../watcher";
 import npminstall from "npminstall";
-import Context from "npminstall/lib/context";
-
+import * as NpmInstallContext from "npminstall/lib/context";
 import _ from "lodash";
-import { isWindows } from "../../utils";
+import { cmdCli } from "../../utils";
 
-export class PackageJsonTask extends SingleTask {
-  public async init(options: ITaskManager): Promise<void> {
+export class PackageJsonTask extends Task {
+  constructor(context: Context) {
+    super(context, "package.json");
+  }
+  public id(): string {
+    return this.relativeToRootPath;
+  }
+
+  override get relativeToRootPath(): string {
+    return path.relative(this.context.config.root, this.filePath);
+  }
+
+  public override async onInit(options: ITaskManager): Promise<void> {
     //
   }
-  public handle(): Promise<void> {
-    const distPath = path.join(this.config.determinedDestDir, this.filePath);
+
+  public override onHandle(options: ITaskManager): Promise<void> {
+    const distPath = path.join(
+      this.context.config.determinedDestDir,
+      this.filePath
+    );
     return fs.promises
       .stat(this.filePath)
       .then((stats) => {
@@ -43,32 +57,23 @@ export class PackageJsonTask extends SingleTask {
             .then(() => {
               return npminstall(
                 {
-                  root: this.config.determinedDestDir,
+                  root: this.context.config.determinedDestDir,
                   registry: "http://registry.npm.manwei.com",
                   production: true,
                   trace: false,
                 },
-                new Context()
+                new NpmInstallContext()
               );
             })
             .then(() => {
-              if (this.config.command === "dev") {
+              if (this.context.config.command === "dev") {
                 return new Promise((resolve, reject) => {
-                  let cliCMD = isWindows ? "cli.bat" : "cli";
-                  if (
-                    process.env.WETOOLS_HOME &&
-                    typeof process.env.WETOOLS_HOME === "string"
-                  ) {
-                    cliCMD = path.join(
-                      process.env.WETOOLS_HOME,
-                      `${isWindows ? "cli.bat" : "cli"}`
-                    );
-                  }
+                  const cliCMD = cmdCli();
                   const time = Date.now();
                   exec(
                     `${cliCMD} build-npm --project "${path.resolve(
-                      this.config.root,
-                      this.config.determinedDestDir
+                      this.context.config.root,
+                      this.context.config.determinedDestDir
                     )}"`,
                     { timeout: 60000 },
                     (err) => {

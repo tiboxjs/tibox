@@ -656,3 +656,17 @@ export function absolute2Relative(root: string, filePath: string): string {
     path.normalize(`src/${filePath}`)
   );
 }
+
+export function cmdCli(): string {
+  let cliCMD = isWindows ? "cli.bat" : "cli";
+  if (
+    process.env.WETOOLS_HOME &&
+    typeof process.env.WETOOLS_HOME === "string"
+  ) {
+    cliCMD = path.join(
+      process.env.WETOOLS_HOME,
+      `${isWindows ? "cli.bat" : "cli"}`
+    );
+  }
+  return cliCMD;
+}

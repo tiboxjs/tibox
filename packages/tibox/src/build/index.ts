@@ -219,7 +219,9 @@ async function doBuild(inlineConfig: InlineConfig = {}): Promise<BuildOutput> {
   const parseResult = await parse(config);
   await parseResult.taskManager.handle();
 
-  const allValidDestFiles = parseResult.taskManager.destPaths();
+  const allValidDestFiles = _.map(parseResult.taskManager.wholeTask, (task) =>
+    path.join(config.root, task.filePath)
+  );
 
   const allDestFiles = _.map(
     await parseDir(path.resolve(config.root, config.determinedDestDir), {

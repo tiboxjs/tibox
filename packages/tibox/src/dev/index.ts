@@ -5,11 +5,12 @@ import chalk from "chalk";
 import _ from "lodash";
 import { parse } from "../parse";
 import { createLogger } from "../logger";
-import { parseDir, prune } from "../utils";
+import { cmdCli, parseDir, prune } from "../utils";
 import path from "path";
 import fs from "fs-extra";
 import os from "os";
 import { debounce } from "throttle-debounce";
+import { exec } from "child_process";
 
 export interface DevOptions {
   mock: boolean;
@@ -75,7 +76,10 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
   const parseResult = await parse(config);
   spinner.text = "解析小程序文件依赖关系";
   await parseResult.taskManager.handle();
-  const allValidDestFiles = parseResult.taskManager.destPaths();
+  const allValidDestFiles = _.map(
+    parseResult.taskManager.wholeTask,
+    (task) => task.filePath
+  );
 
   spinner.text = `扫描${config.determinedDestDir}目录无用文件`;
   const allDestFiles = _.map(
@@ -127,6 +131,20 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
     })
     .on("ready", () => {
       spinner.succeed("初始化完成，开始监听...");
+      const cliCMD = cmdCli();
+      const cmd = `${cliCMD} open --project "${path.resolve(
+        config.root,
+        config.determinedDestDir
+      )}"`;
+      const cliSpinner = ora("正在启动开发工具:" + cmd).start();
+      exec(cmd, { timeout: 10000 }, (err) => {
+        if (err) {
+          cliSpinner.fail(err.message);
+          createLogger().error(chalk.red(err));
+        } else {
+          cliSpinner.succeed("开发工具启动完成");
+        }
+      });
     })
     .on("error", (error) => {
       spinner.warn(error.stack);

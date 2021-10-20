@@ -2,13 +2,12 @@
 import { ResolvedConfig } from "../";
 // import { TTask } from "../libs/task";
 import path from "path";
-import fs from "fs-extra";
 // import os from "os";
 import { createLogger } from "../logger";
 import _ from "lodash";
 import chalk from "chalk";
 // import loadJsonFile from "load-json-file";
-import { TaskManager } from "../task/taskManager";
+import { TaskManager } from "../tasks/taskManager";
 import { parseDir } from "../utils";
 
 /**
@@ -41,59 +40,59 @@ export enum TFileType {
   // TODO: 还有tailwind和svg文件
 }
 
-/**
- * tibox里的文件，防止名字冲突，在前面加了个T
- */
-export interface TFile {
-  type: TFileType;
-  path: string;
-}
+// /**
+//  * tibox里的文件，防止名字冲突，在前面加了个T
+//  */
+// export interface TFile {
+//   type: TFileType;
+//   path: string;
+// }
 
-export class JsFile implements TFile {
-  public type: TFileType;
-  public path: string;
-  public content?: string;
+// export class JsFile implements TFile {
+//   public type: TFileType;
+//   public path: string;
+//   public content?: string;
 
-  constructor(type: TFileType, path: string) {
-    this.type = type;
-    this.path = path;
-  }
+//   constructor(type: TFileType, path: string) {
+//     this.type = type;
+//     this.path = path;
+//   }
 
-  public async loadContent(): Promise<void> {
-    this.content = await fs.promises.readFile(this.path, {
-      encoding: "utf-8",
-    });
-  }
-}
+//   public async loadContent(): Promise<void> {
+//     this.content = await fs.promises.readFile(this.path, {
+//       encoding: "utf-8",
+//     });
+//   }
+// }
 
-export class JsonFile implements TFile {
-  public type: TFileType;
-  public path: string;
+// export class JsonFile implements TFile {
+//   public type: TFileType;
+//   public path: string;
 
-  constructor(type: TFileType, path: string) {
-    this.type = type;
-    this.path = path;
-  }
-}
-export class WxmlFile implements TFile {
-  public type: TFileType;
-  public path: string;
+//   constructor(type: TFileType, path: string) {
+//     this.type = type;
+//     this.path = path;
+//   }
+// }
+// export class WxmlFile implements TFile {
+//   public type: TFileType;
+//   public path: string;
 
-  constructor(type: TFileType, path: string) {
-    this.type = type;
-    this.path = path;
-  }
-}
+//   constructor(type: TFileType, path: string) {
+//     this.type = type;
+//     this.path = path;
+//   }
+// }
 
-export class WxssFile implements TFile {
-  public type: TFileType;
-  public path: string;
+// export class WxssFile implements TFile {
+//   public type: TFileType;
+//   public path: string;
 
-  constructor(type: TFileType, path: string) {
-    this.type = type;
-    this.path = path;
-  }
-}
+//   constructor(type: TFileType, path: string) {
+//     this.type = type;
+//     this.path = path;
+//   }
+// }
 
 /**
  *
@@ -147,7 +146,10 @@ async function doParse(resolvedConfig: ResolvedConfig): Promise<ParseResult> {
 
   const { taskManager } = await parseMiniProgram(resolvedConfig);
   // logger.info(chalk.blueBright(`allFiles: ${parseResult.length}`));
-  const unTrackedFiles = _.pull(parseResult, ...taskManager.files());
+  const unTrackedFiles = _.pull(
+    parseResult,
+    ..._.map(taskManager.wholeTask, (task) => task.relativeToRootPath)
+  );
 
   // const trackedFiles = taskManager.files();
   // logger.info(
@@ -216,8 +218,7 @@ async function parseMiniProgram(config: ResolvedConfig): Promise<ParseResult> {
 
   //===========
   // const miniprogramApp: MiniProgramApp = new MiniProgramApp(srcPath);
-
-  const taskManager = new TaskManager(config);
+  const taskManager = new TaskManager({ config });
   await taskManager.init();
   // TODO: 假代码
   return { /* fileList: [], mapTask: {},  */ taskManager: taskManager };

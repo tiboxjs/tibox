@@ -1,14 +1,22 @@
 import path from "path";
 import fs from "fs-extra";
 import { ITaskManager } from "..";
-import { SingleTask } from "../task";
+import { Task } from "../task";
 
-export class ImageTask extends SingleTask {
-  public async init(options: ITaskManager): Promise<void> {
+export class ImageTask extends Task {
+  public id(): string {
+    return this.relativeToRootPath;
+  }
+
+  public override async onInit(options: ITaskManager): Promise<void> {
     //
   }
-  public handle(): Promise<void> {
-    const distPath = path.join(this.config.determinedDestDir, this.filePath);
+
+  public override onHandle(options: ITaskManager): Promise<void> {
+    const distPath = path.join(
+      this.context.config.determinedDestDir,
+      this.filePath
+    );
     return fs.ensureDir(path.dirname(distPath)).then(() => {
       return new Promise((resolve, reject) => {
         fs.createReadStream(path.join("src", this.filePath))

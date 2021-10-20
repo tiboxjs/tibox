@@ -15,18 +15,16 @@ export type OnRegistComponentCallback = (
   componentPath: string
 ) => Promise<ComponentTask>;
 
-export type OnRegistJsFileCallback = (jsFilePath: string) => Promise<JsTask>;
-export type OnRegistJsonFileCallback = (
-  jsonFilePath: string
-) => Promise<JsonTask>;
-export type OnRegistWxmlFileCallback = (
-  wxmlFilePath: string
-) => Promise<WxmlTask>;
-export type OnRegistWxssFileCallback = (
-  wxssFilePath: string
-) => Promise<WxssTask>;
-export type OnRegistImageFileCallback = (
-  imageFilePath: string
+export type OnRegistJsTaskCallback = (jsPath: string) => Promise<JsTask>;
+
+export type OnRegistJsonTaskCallback = (jsonPath: string) => Promise<JsonTask>;
+
+export type OnRegistWxmlTaskCallback = (wxmlPath: string) => Promise<WxmlTask>;
+
+export type OnRegistWxssTaskCallback = (wxssPath: string) => Promise<WxssTask>;
+
+export type OnRegistImageTaskCallback = (
+  imagePath: string
 ) => Promise<ImageTask>;
 
 // /**
@@ -35,12 +33,12 @@ export type OnRegistImageFileCallback = (
 // export function createTaskTreeByParsedResult() {}
 
 export interface ITaskManager {
-  wholeTask: Task[];
+  wholeTask: Record<string, Task>;
   onRegistPageCallback: OnRegistPageCallback;
   onRegistComponentCallback: OnRegistComponentCallback;
-  onRegistJsFileCallback: OnRegistJsFileCallback;
-  onRegistJsonFileCallback: OnRegistJsonFileCallback;
-  onRegistWxmlFileCallback: OnRegistWxmlFileCallback;
-  onRegistWxssFileCallback: OnRegistWxssFileCallback;
-  onRegistImageFileCallback: OnRegistImageFileCallback;
+  onRegistJsTaskCallback: OnRegistJsTaskCallback;
+  onRegistJsonTaskCallback: OnRegistJsonTaskCallback;
+  onRegistWxmlTaskCallback: OnRegistWxmlTaskCallback;
+  onRegistWxssTaskCallback: OnRegistWxssTaskCallback;
+  onRegistImageTaskCallback: OnRegistImageTaskCallback;
 }
