@@ -665,16 +665,22 @@ export function cmdCli(): string {
     process.env.WETOOLS_HOME &&
     typeof process.env.WETOOLS_HOME === "string"
   ) {
-    cliCMD = path.join(
-      process.env.WETOOLS_HOME,
-      `${isWindows ? "cli.bat" : "cli"}`
-    );
+    if (isWindows) {
+      cliCMD = `call "${path.join(process.env.WETOOLS_HOME, "cli.bat")}"`;
+    } else {
+      cliCMD = path.join(process.env.WETOOLS_HOME, "cli");
+    }
   }
   return cliCMD;
 }
 
-export function cmdCliFaid(err: Error | null): void {
-  if (err && /(command not found)/.test(err.message)) {
+export function cmdCliFaid(err: Error | null): boolean {
+  if (
+    err &&
+    /(command not found)|(is not recognized as an internal or external command)/.test(
+      err.message
+    )
+  ) {
     createLogger().info(
       chalk.bgRed(
         `未能检测到微信开发者命令行工具，请设置环境变量WETOOLS_HOME，指向开发者工具安装目录${
@@ -684,6 +690,9 @@ export function cmdCliFaid(err: Error | null): void {
         }`
       )
     );
+    return true;
+  } else {
+    return false;
   }
 }
 

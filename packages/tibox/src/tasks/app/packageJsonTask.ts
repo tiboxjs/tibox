@@ -60,7 +60,7 @@ export class PackageJsonTask extends Task {
                   root: this.context.config.determinedDestDir,
                   registry: "http://registry.npm.manwei.com",
                   production: true,
-                  trace: false,
+                  trace: true,
                 },
                 new Context()
               );
@@ -77,11 +77,15 @@ export class PackageJsonTask extends Task {
                     )}"`,
                     { timeout: 30000 },
                     (err) => {
-                      cmdCliFaid(err);
                       if (!err) {
                         createLogger().info(
                           chalk.green(`构建npm包成功 ${Date.now() - time}ms`)
                         );
+                      } else {
+                        const handled = cmdCliFaid(err);
+                        if (!handled) {
+                          createLogger().error(chalk.red(err.message));
+                        }
                       }
                       resolve();
                     }
