@@ -86,9 +86,9 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
 
     const time = Date.now() - start;
     let str;
-    if (time < 200) {
+    if (time < 1000) {
       str = chalk.greenBright(`${time}ms`);
-    } else if (time < 1000) {
+    } else if (time < 3000) {
       str = chalk.yellowBright(`${time}ms`);
     } else {
       str = chalk.redBright(`${time}ms`);
