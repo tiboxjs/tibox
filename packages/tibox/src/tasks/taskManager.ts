@@ -204,7 +204,10 @@ export class TaskManager implements ITaskManager {
         )
     );
 
-    const unuseFiles = _.pull(allDestFiles, ...allValidDestFiles);
+    const unuseFiles = _.pull(
+      allDestFiles,
+      ..._.map(allValidDestFiles, (item) => path.normalize(item))
+    );
     if (unuseFiles.length) {
       spinner.info("移除无用文件");
       _.forEach(unuseFiles, (item) => {
