@@ -9,6 +9,7 @@ import fs from "fs-extra";
 import os from "os";
 import { debounce } from "throttle-debounce";
 import { exec } from "child_process";
+import chalk from "chalk";
 
 export interface DevOptions {
   mock: boolean;
@@ -41,6 +42,8 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
   // 不监听 package.json、tibox.config.js、.env.*
   const needWatches = [
     "src/",
+    "sitemap.json",
+    "package.json",
     "project.config.json" /* , "tailwind.config.js", "tailwind/", "svg/" */,
   ];
   // const resolvedPath = path.resolve(root, "src/");
@@ -81,7 +84,16 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
 
     await parseResult.taskManager.handle(watchingSpinner);
 
-    watchingSpinner.succeed(`处理完成 耗时 ${Date.now() - start}ms`);
+    const time = Date.now() - start;
+    let str;
+    if (time < 200) {
+      str = chalk.greenBright(`${time}ms`);
+    } else if (time < 1000) {
+      str = chalk.yellowBright(`${time}ms`);
+    } else {
+      str = chalk.redBright(`${time}ms`);
+    }
+    watchingSpinner.succeed(`处理完成 耗时: ${str}`);
   });
 
   chokidar

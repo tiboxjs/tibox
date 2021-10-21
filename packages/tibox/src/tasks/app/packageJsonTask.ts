@@ -29,17 +29,17 @@ export class PackageJsonTask extends Task {
   }
 
   public override onHandle(options: ITaskManager): Promise<void> {
-    const distPath = path.join(
-      this.context.config.determinedDestDir,
-      this.filePath
-    );
     return fs.promises
-      .stat(this.filePath)
+      .stat(this.absolutePath)
       .then((stats) => {
-        return isNeedHandle(this.filePath, stats.mtimeMs);
+        return isNeedHandle(this.relativeToRootPath, stats.mtimeMs);
       })
       .then((needHandle) => {
         if (needHandle) {
+          const distPath = path.join(
+            this.context.config.determinedDestDir,
+            this.filePath
+          );
           return fs
             .ensureDir(path.dirname(distPath))
             .then(() => {

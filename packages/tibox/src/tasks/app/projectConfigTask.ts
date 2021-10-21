@@ -3,6 +3,7 @@ import fs from "fs-extra";
 import through from "through2";
 import { Context, Task } from "../task";
 import { ITaskManager } from "..";
+import { isNeedHandle } from "../../watcher";
 
 export class ProjectConfigTask extends Task {
   constructor(context: Context) {
@@ -21,38 +22,45 @@ export class ProjectConfigTask extends Task {
   }
 
   public override onHandle(options: ITaskManager): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const [configJsonFile] = this.fileList();
-      fs.createReadStream(configJsonFile)
-        .pipe(
-          through.obj((buffer, encode, cb) => {
-            const projectConfigJson = JSON.parse(buffer.toString());
-            projectConfigJson.appid = this.context.config.appid;
-            projectConfigJson.projectname =
-              this.context.config.determinedProjectName;
-            buffer = Buffer.from(JSON.stringify(projectConfigJson, null, 2));
-            cb(null, buffer);
-          })
-        )
-        .pipe(
-          fs.createWriteStream(
-            path.join(this.context.config.determinedDestDir, configJsonFile)
-          )
-        )
-        .on("finish", () => {
-          resolve();
-        })
-        .on("error", (res) => {
-          reject(res);
-        });
-    });
-  }
-
-  // public override files(): string[] {
-  //   return this.fileList();
-  // }
-
-  private fileList(): string[] {
-    return ["project.config.json"];
+    return fs.promises
+      .stat(this.absolutePath)
+      .then((stats) => {
+        return isNeedHandle(this.relativeToRootPath, stats.mtimeMs);
+      })
+      .then((needHandle) => {
+        if (needHandle) {
+          return new Promise((resolve, reject) => {
+            fs.createReadStream(this.absolutePath)
+              .pipe(
+                through.obj((buffer, encode, cb) => {
+                  const projectConfigJson = JSON.parse(buffer.toString());
+                  projectConfigJson.appid = this.context.config.appid;
+                  projectConfigJson.projectname =
+                    this.context.config.determinedProjectName;
+                  buffer = Buffer.from(
+                    JSON.stringify(projectConfigJson, null, 2)
+                  );
+                  cb(null, buffer);
+                })
+              )
+              .pipe(
+                fs.createWriteStream(
+                  path.join(
+                    this.context.config.determinedDestDir,
+                    this.filePath
+                  )
+                )
+              )
+              .on("finish", () => {
+                resolve();
+              })
+              .on("error", (res) => {
+                reject(res);
+              });
+          });
+        } else {
+          return Promise.resolve();
+        }
+      });
   }
 }

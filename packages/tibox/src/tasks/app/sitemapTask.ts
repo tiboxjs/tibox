@@ -3,6 +3,7 @@ import path from "path";
 import { isFileExist } from "../../utils";
 import { ITaskManager } from "..";
 import { Context, Task } from "../task";
+import { isNeedHandle } from "../../watcher";
 
 export class SitemapTask extends Task {
   constructor(context: Context) {
@@ -24,20 +25,34 @@ export class SitemapTask extends Task {
       path.resolve(this.context.config.root, this.filePath)
     ).then((flag) => {
       if (flag) {
-        return new Promise((resolve, reject) => {
-          fs.createReadStream(this.filePath)
-            .pipe(
-              fs.createWriteStream(
-                path.join(this.context.config.determinedDestDir, this.filePath)
-              )
-            )
-            .on("finish", () => {
-              resolve();
-            })
-            .on("error", (res) => {
-              reject(res);
-            });
-        });
+        return fs.promises
+          .stat(this.absolutePath)
+          .then((stats) => {
+            return isNeedHandle(this.relativeToRootPath, stats.mtimeMs);
+          })
+          .then((needHandle) => {
+            if (needHandle) {
+              return new Promise((resolve, reject) => {
+                fs.createReadStream(this.filePath)
+                  .pipe(
+                    fs.createWriteStream(
+                      path.join(
+                        this.context.config.determinedDestDir,
+                        this.filePath
+                      )
+                    )
+                  )
+                  .on("finish", () => {
+                    resolve();
+                  })
+                  .on("error", (res) => {
+                    reject(res);
+                  });
+              });
+            } else {
+              return Promise.resolve();
+            }
+          });
       }
     });
   }
