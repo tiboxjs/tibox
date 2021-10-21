@@ -76,6 +76,7 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
   spinner.text = "解析项目目录文件";
   const parseResult = await parse(config);
 
+  let isHandleIdeOpened = false;
   const debounceFunction = debounce(250, false, async () => {
     const watchingSpinner = ora("处理中...").start();
     const start = Date.now();
@@ -94,6 +95,22 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
       str = chalk.redBright(`${time}ms`);
     }
     watchingSpinner.succeed(`处理完成 耗时: ${str}`);
+    if (!isHandleIdeOpened) {
+      const cliCMD = cmdCli();
+      const cmd = `${cliCMD} open --project "${path.resolve(
+        config.root,
+        config.determinedDestDir
+      )}"`;
+      const cliSpinner = ora("正在启动开发工具...").start();
+      exec(cmd, { timeout: 15000 }, (err) => {
+        if (err) {
+          cliSpinner.fail("微信开发者工具未能自动启动" + cmd);
+        } else {
+          cliSpinner.succeed("开发工具启动完成");
+        }
+        isHandleIdeOpened = true;
+      });
+    }
   });
 
   chokidar
@@ -120,19 +137,6 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
         parseResult.taskManager.wholeTask
       );
       spinner.succeed("初始化完成，开始监听...");
-      const cliCMD = cmdCli();
-      const cmd = `${cliCMD} open --project "${path.resolve(
-        config.root,
-        config.determinedDestDir
-      )}"`;
-      const cliSpinner = ora("正在启动开发工具...").start();
-      exec(cmd, { timeout: 10000 }, (err) => {
-        if (err) {
-          cliSpinner.fail("微信开发者工具未能自动启动");
-        } else {
-          cliSpinner.succeed("开发工具启动完成");
-        }
-      });
     })
     .on("error", (error) => {
       spinner.warn(error.stack);
