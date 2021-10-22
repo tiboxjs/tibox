@@ -66,13 +66,28 @@ export class PackageJsonTask extends Task {
                   },
                   (err) => {
                     if (err) {
-                      createLogger().error(chalk.red(err));
-                      reject(err);
+                      if (
+                        /(Unexpected token < in JSON at position 0)/.test(
+                          err.message
+                        )
+                      ) {
+                        createLogger().error(
+                          chalk.red(
+                            "执行cnpm安装时，registry服务响应异常，请检查网络是否正常"
+                          )
+                        );
+                        resolve("");
+                      } else {
+                        reject(err);
+                      }
                     } else {
                       resolve("");
                     }
                   }
                 );
+              }).catch((err) => {
+                createLogger().error(chalk.red(err));
+                return Promise.resolve();
               });
             })
             .then(() => {
