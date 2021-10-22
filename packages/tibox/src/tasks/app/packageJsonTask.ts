@@ -7,8 +7,6 @@ import { createLogger } from "../../logger";
 import { exec } from "child_process";
 import chalk from "chalk";
 import { isNeedHandle } from "../../watcher";
-import npminstall from "npminstall";
-import Context from "npminstall/lib/context";
 import _ from "lodash";
 import { cmdCli, cmdCliFaid } from "../../utils";
 
@@ -55,15 +53,27 @@ export class PackageJsonTask extends Task {
               });
             })
             .then(() => {
-              return npminstall(
-                {
-                  root: this.context.config.determinedDestDir,
-                  registry: "http://registry.npm.manwei.com",
-                  production: true,
-                  trace: true,
-                },
-                new Context()
-              );
+              return new Promise((resolve, reject) => {
+                const yarnCMDOptions = [
+                  "--prefer-offline",
+                  "--registry=http://registry.npm.manwei.com",
+                ];
+                exec(
+                  `cnpm i --production ${yarnCMDOptions.join(" ")}`,
+                  {
+                    cwd: this.context.config.determinedDestDir,
+                    timeout: 60000,
+                  },
+                  (err) => {
+                    if (err) {
+                      createLogger().error(chalk.red(err));
+                      reject(err);
+                    } else {
+                      resolve("");
+                    }
+                  }
+                );
+              });
             })
             .then(() => {
               if (this.context.config.command === "dev") {
