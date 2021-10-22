@@ -59,7 +59,7 @@ export class PackageJsonTask extends Task {
                   "--registry=http://registry.npm.manwei.com",
                 ];
                 exec(
-                  `npx cnpm i --production ${yarnCMDOptions.join(" ")}`,
+                  `cnpm i --production ${yarnCMDOptions.join(" ")}`,
                   {
                     cwd: this.context.config.determinedDestDir,
                     timeout: 60000,
