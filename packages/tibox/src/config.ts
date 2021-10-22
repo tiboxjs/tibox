@@ -184,16 +184,22 @@ export async function resolveConfig(
 
   let { configFile } = config;
   if (configFile !== false) {
-    const loadResult = await loadConfigFromFile(
-      configEnv,
-      configFile,
-      config.root
-      // config.logLevel
-    );
-    if (loadResult) {
-      config = mergeConfig(loadResult.config, config);
-      configFile = loadResult.path;
-      // configFileDependencies = loadResult.dependencies;
+    try {
+      const loadResult = await loadConfigFromFile(
+        configEnv,
+        configFile,
+        config.root
+        // config.logLevel
+      );
+      if (loadResult) {
+        config = mergeConfig(loadResult.config, config);
+        configFile = loadResult.path;
+        // configFileDependencies = loadResult.dependencies;
+      }
+    } catch (error: any) {
+      if (/Cannot find module/.test(error.message)) {
+        throw new Error("Config file can't be found!");
+      }
     }
   }
 
@@ -550,20 +556,20 @@ export async function loadConfigFromFile(
         delete require.cache[require.resolve(resolvedPath)];
         userConfig = require(resolvedPath);
         // debug(`cjs config loaded in ${Date.now() - start}ms`);
-      } catch (e) {
-        // const ignored = new RegExp(
-        //   [
-        //     `Cannot use import statement`,
-        //     `Must use import to load ES Module`,
-        //     // #1635, #2050 some Node 12.x versions don't have esm detection
-        //     // so it throws normal syntax errors when encountering esm syntax
-        //     `Unexpected token`,
-        //     `Unexpected identifier`,
-        //   ].join("|")
-        // );
-        // if (!ignored.test(e.message)) {
-        //   throw e;
-        // }
+      } catch (e: any) {
+        const ignored = new RegExp(
+          [
+            `Cannot use import statement`,
+            `Must use import to load ES Module`,
+            // #1635, #2050 some Node 12.x versions don't have esm detection
+            // so it throws normal syntax errors when encountering esm syntax
+            `Unexpected token`,
+            `Unexpected identifier`,
+          ].join("|")
+        );
+        if (!ignored.test(e.message)) {
+          throw e;
+        }
       }
     }
 
