@@ -267,9 +267,12 @@ export async function resolveConfig(
      */
     dependencies: packageJson.dependencies,
     isDependencies: (name) => {
-      return _.some(
-        packageJson.dependencies,
-        (item, key) => key === name.replace(/\\/, "/")
+      return (
+        /^weui-miniprogram/.test(name) ||
+        _.some(
+          packageJson.dependencies,
+          (item, key) => key === name.replace(/\\/, "/")
+        )
       );
     },
     project: config.project || "newProject",

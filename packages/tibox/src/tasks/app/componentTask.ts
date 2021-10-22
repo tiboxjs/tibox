@@ -14,7 +14,11 @@ export type MiniProgramComponentConfig = {
  */
 export class ComponentTask extends Task {
   public override async onInit(options: ITaskManager): Promise<void> {
-    if (/^@/.test(this.filePath)) {
+    const isDependencies = this.context.config.isDependencies;
+    // if (!isDependencies(this.filePath) && !/ext/.test(this.filePath)) {
+    // } else {
+    // }
+    if (isDependencies(this.filePath) || /^@/.test(this.filePath)) {
       if (DEBUGING) {
         createLogger().info(`\nComponent [${this.filePath}] ignore`);
       }
