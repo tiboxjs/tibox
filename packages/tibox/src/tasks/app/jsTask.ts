@@ -17,8 +17,8 @@ export class JsTask extends Task {
     this.tasks = [];
     const isDependencies = this.context.config.isDependencies;
     if (!isDependencies(this.filePath) && !/ext/.test(this.filePath)) {
-      if ((await fs.promises.stat(this.absolutePath)).isFile()) {
-        this.isVirtual = false;
+      try {
+        await fs.promises.access(this.absolutePath);
         const matchedResult = await matchImportJsFile(this.absolutePath);
 
         const jsTasks = await Promise.all(
@@ -37,8 +37,10 @@ export class JsTask extends Task {
           })
         );
         this.tasks = jsTasks;
-      } else {
-        this.isVirtual = true;
+      } catch (error: any) {
+        if (!/no such file or directory/.test(error.message)) {
+          throw error;
+        }
         createLogger().info(
           chalk.yellow(`${this.absolutePath} 文件不存在，忽略解析`)
         );
@@ -48,36 +50,33 @@ export class JsTask extends Task {
     }
   }
 
-  public override onHandle(options: ITaskManager): Promise<void> {
+  public override async onHandle(options: ITaskManager): Promise<void> {
     const isDependencies = this.context.config.isDependencies;
     if (!isDependencies(this.filePath) && !/ext/.test(this.filePath)) {
-      return fs.promises
-        .stat(this.absolutePath)
-        .then((stats) => {
-          return isNeedHandle(this.relativeToRootPath, stats.mtimeMs);
-        })
-        .then((needHandle) => {
-          if (needHandle) {
-            const distPath = path.join(
-              this.context.config.determinedDestDir,
-              this.filePath
-            );
-            return fs.ensureDir(path.dirname(distPath)).then(() => {
-              return new Promise((resolve, reject) => {
-                fs.createReadStream(path.join("src", this.filePath))
-                  .pipe(fs.createWriteStream(distPath))
-                  .on("finish", () => {
-                    resolve();
-                  })
-                  .on("error", (res) => {
-                    reject(res);
-                  });
+      try {
+        const stats = await fs.promises.stat(this.absolutePath);
+        if (isNeedHandle(this.relativeToRootPath, stats.mtimeMs)) {
+          const distPath = path.join(
+            this.context.config.determinedDestDir,
+            this.filePath
+          );
+          await fs.ensureDir(path.dirname(distPath));
+          return new Promise((resolve, reject) => {
+            fs.createReadStream(path.join("src", this.filePath))
+              .pipe(fs.createWriteStream(distPath))
+              .on("finish", () => {
+                resolve();
+              })
+              .on("error", (res) => {
+                reject(res);
               });
-            });
-          } else {
-            return Promise.resolve();
-          }
-        });
+          });
+        }
+      } catch (error: any) {
+        if (!/no such file or directory/.test(error.message)) {
+          throw error;
+        }
+      }
     } else {
       return Promise.resolve();
     }

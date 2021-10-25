@@ -21,10 +21,6 @@ export abstract class Task {
   context: Context;
 
   filePath: string;
-  /**
-   * 是否为虚任务，当对应文件不存在时，任务为虚任务
-   */
-  isVirtual: boolean = false;
 
   tasks: Array<Task>;
 

@@ -1,11 +1,13 @@
 import _ from "lodash";
 import path from "path";
+import fs from "fs-extra";
 import { createLogger /* , Logger */ } from "../../logger";
 import { Task } from "../task";
 import { ITaskManager } from "..";
 import loadJsonFile from "load-json-file";
 import { absolute2Relative } from "../../utils";
 import { DEBUGING } from "../../constants";
+import chalk from "chalk";
 export type MiniProgramComponentConfig = {
   usingComponents?: Record<string, string>;
 };
@@ -30,33 +32,48 @@ export class ComponentTask extends Task {
         options.onRegistWxssTaskCallback(`${this.filePath}.wxss`),
       ]);
 
-      const componentJson: MiniProgramComponentConfig = await loadJsonFile(
-        path.resolve(this.context.config.root, "src", `${this.filePath}.json`)
+      const componentJsonFileAbsolutePath = path.resolve(
+        this.context.config.root,
+        "src",
+        `${this.filePath}.json`
       );
-      if (componentJson.usingComponents) {
-        const otherComponentTasks = await Promise.all(
-          _.map(componentJson.usingComponents, (componentPath) => {
-            let targetPath: string;
-            if (path.isAbsolute(componentPath)) {
-              targetPath = absolute2Relative(
-                this.context.config.root,
-                componentPath
-              );
-            } else if (componentPath.startsWith(".")) {
-              targetPath = path.relative(
-                path.join(this.context.config.root, "src"),
-                path.resolve(
-                  path.dirname(path.join("src", this.filePath)),
-                  componentPath
-                )
-              );
-            } else {
-              targetPath = componentPath;
-            }
-            return options.onRegistComponentCallback(targetPath);
-          })
+      try {
+        await fs.promises.access(componentJsonFileAbsolutePath);
+        const componentJson: MiniProgramComponentConfig = await loadJsonFile(
+          path.resolve(this.context.config.root, "src", `${this.filePath}.json`)
         );
-        this.tasks = _.concat(this.tasks, otherComponentTasks);
+        if (componentJson.usingComponents) {
+          const otherComponentTasks = await Promise.all(
+            _.map(componentJson.usingComponents, (componentPath) => {
+              let targetPath: string;
+              if (path.isAbsolute(componentPath)) {
+                targetPath = absolute2Relative(
+                  this.context.config.root,
+                  componentPath
+                );
+              } else if (componentPath.startsWith(".")) {
+                targetPath = path.relative(
+                  path.join(this.context.config.root, "src"),
+                  path.resolve(
+                    path.dirname(path.join("src", this.filePath)),
+                    componentPath
+                  )
+                );
+              } else {
+                targetPath = componentPath;
+              }
+              return options.onRegistComponentCallback(targetPath);
+            })
+          );
+          this.tasks = _.concat(this.tasks, otherComponentTasks);
+        }
+      } catch (error: any) {
+        if (!/no such file or directory/.test(error.message)) {
+          throw error;
+        }
+        createLogger().info(
+          chalk.yellow(`${componentJsonFileAbsolutePath} 文件不存在，忽略解析`)
+        );
       }
     }
   }
