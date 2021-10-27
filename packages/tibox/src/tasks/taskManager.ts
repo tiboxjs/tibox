@@ -190,6 +190,7 @@ export class TaskManager implements ITaskManager {
     const config = this.context.config;
     spinner.text = "解析小程序文件依赖关系";
     const allValidDestFiles = _.map(this.wholeTask, (task) => task.filePath);
+    const ignoreDestFiles = ["project.private.config.json"];
 
     spinner.text = `扫描${config.determinedDestDir}目录无用文件`;
     const allDestFiles = _.map(
@@ -206,7 +207,8 @@ export class TaskManager implements ITaskManager {
 
     const unuseFiles = _.pull(
       allDestFiles,
-      ..._.map(allValidDestFiles, (item) => path.normalize(item))
+      ..._.map(allValidDestFiles, (item) => path.normalize(item)),
+      ..._.map(ignoreDestFiles, (item) => path.normalize(item))
     );
     if (unuseFiles.length) {
       spinner.info("移除无用文件");
