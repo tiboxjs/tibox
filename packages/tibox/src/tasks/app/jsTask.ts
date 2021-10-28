@@ -7,6 +7,7 @@ import fs from "fs-extra";
 import { createLogger } from "../../logger";
 import chalk from "chalk";
 import { isNeedHandle } from "../../watcher";
+import through from "through2";
 
 export class JsTask extends Task {
   public id(): string {
@@ -63,6 +64,28 @@ export class JsTask extends Task {
           await fs.ensureDir(path.dirname(distPath));
           return new Promise((resolve, reject) => {
             fs.createReadStream(path.join("src", this.filePath))
+              .pipe(
+                through.obj((buffer, encode, cb) => {
+                  let fileContent = buffer.toString(encode) as string;
+
+                  const replacer = (matched: string) => {
+                    const mapper: Record<string, string> = {
+                      "[[VERSION]]": this.context.config.version as string,
+                      "[[PRODUCT_NAME]]": this.context.config.product as string,
+                      "[[GIT_COMMIT_ID]]": "xxx",
+                    };
+                    return mapper[matched];
+                  };
+                  fileContent = _.replace(
+                    fileContent,
+                    /\[\[.*?\]\]/g,
+                    replacer
+                  );
+
+                  buffer = Buffer.from(fileContent);
+                  cb(null, buffer);
+                })
+              )
               .pipe(fs.createWriteStream(distPath))
               .on("finish", () => {
                 resolve();

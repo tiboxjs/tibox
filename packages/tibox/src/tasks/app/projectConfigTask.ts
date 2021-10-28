@@ -33,7 +33,7 @@ export class ProjectConfigTask extends Task {
             fs.createReadStream(this.absolutePath)
               .pipe(
                 through.obj((buffer, encode, cb) => {
-                  const projectConfigJson = JSON.parse(buffer.toString());
+                  const projectConfigJson = JSON.parse(buffer.toString(encode));
                   projectConfigJson.appid = this.context.config.appid;
                   projectConfigJson.projectname =
                     this.context.config.determinedProjectName;
