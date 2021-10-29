@@ -16,7 +16,7 @@ export class JsonTask extends Task {
 
   public override async onHandle(options: ITaskManager): Promise<void> {
     const isDependencies = this.context.config.isDependencies;
-    if (!isDependencies(this.filePath) && !/ext/.test(this.filePath)) {
+    if (!isDependencies(this.filePath)) {
       try {
         const stats = await fs.promises.stat(this.absolutePath);
         if (isNeedHandle(this.relativeToRootPath, stats.mtimeMs)) {

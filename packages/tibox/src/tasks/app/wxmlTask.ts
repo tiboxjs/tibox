@@ -15,7 +15,7 @@ export class WxmlTask extends Task {
 
   public override async onInit(options: ITaskManager): Promise<void> {
     const isDependencies = this.context.config.isDependencies;
-    if (!isDependencies(this.filePath) && !/ext/.test(this.filePath)) {
+    if (!isDependencies(this.filePath)) {
       try {
         await fs.promises.access(this.absolutePath);
         const matchedResult = await matchImportWxmlFile(
@@ -53,7 +53,7 @@ export class WxmlTask extends Task {
 
   public override async onHandle(options: ITaskManager): Promise<void> {
     const isDependencies = this.context.config.isDependencies;
-    if (!isDependencies(this.filePath) && !/ext/.test(this.filePath)) {
+    if (!isDependencies(this.filePath)) {
       try {
         const stats = await fs.promises.stat(this.absolutePath);
         if (isNeedHandle(this.relativeToRootPath, stats.mtimeMs)) {
