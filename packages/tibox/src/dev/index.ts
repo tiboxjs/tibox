@@ -121,8 +121,8 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
           ignored: [
             "**/node_modules/**",
             "**/.git/**",
-            "**/simpleService.d.ts",
-            "**/simpleService.js",
+            // "**/simpleService.d.ts",
+            // "**/simpleService.js",
           ],
           cwd: config.root,
           // ignoreInitial: true,
