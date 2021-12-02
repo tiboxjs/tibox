@@ -22,6 +22,7 @@ import { parseDestFolderName, parseProjectName } from "./libs/tools";
 import loadJsonFile from "load-json-file";
 import { LogLevel } from "./logger";
 import _ from "lodash";
+import git from "git-rev-sync"
 
 // import { CLIENT_DIR, DEFAULT_ASSETS_RE } from './constants'
 export interface ConfigEnv {
@@ -124,6 +125,7 @@ export type ResolvedConfig = Readonly<
     product: string;
     appid: string;
     version: string;
+    commitId: string;
     /**
      * 最终的项目名称
      */
@@ -279,6 +281,7 @@ export async function resolveConfig(
     product: config.product || "default",
     mode,
     version: packageJson.version,
+    commitId: git.short(),
     appid: config.appid || "",
     determinedProjectName,
     determinedDestDir,

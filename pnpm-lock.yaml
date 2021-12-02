@@ -20,6 +20,7 @@ importers:
       '@types/debug': ^4.1.7
       '@types/figlet': ^1.5.4
       '@types/fs-extra': ^9.0.13
+      '@types/git-rev-sync': ^2.0.0
       '@types/lodash': ^4.14.176
       '@types/node': '*'
       '@types/npm': ^7.19.0
@@ -39,6 +40,7 @@ importers:
       eslint: ^7.32.0
       figlet: ^1.5.2
       fs-extra: ^10.0.0
+      git-rev-sync: ^3.0.1
       load-json-file: ^6.2.0
       lodash: ^4.17.21
       miniprogram-ci: ^1.6.10
@@ -63,6 +65,7 @@ importers:
       esbuild: 0.12.29
       figlet: 1.5.2
       fs-extra: 10.0.0
+      git-rev-sync: 3.0.1
       load-json-file: 6.2.0
       lodash: 4.17.21
       miniprogram-ci: 1.6.10
@@ -75,6 +78,7 @@ importers:
       '@commitlint/config-conventional': 12.1.4
       '@types/debug': 4.1.7
       '@types/fs-extra': 9.0.13
+      '@types/git-rev-sync': 2.0.0
       '@types/lodash': 4.14.176
       '@types/node': 16.11.4
       '@types/npm': 7.19.0
@@ -2241,6 +2245,10 @@ packages:
     resolution: {integrity: sha512-nEnwB++1u5lVDM2UI4c1+5R+FYaKfaAzS4OococimjVm3nQw3TuzH5UNsocrcTBbhnerblyHj4A49qXbIiZdpA==}
     dependencies:
       '@types/node': 16.11.4
+    dev: true
+
+  /@types/git-rev-sync/2.0.0:
+    resolution: {integrity: sha512-qGYApbb0m8Ofy3pwYks+kYVIZQAN/cqNucJGbl5O5GpLw9JSzp74rkTWDhPv3brrJfJb5/ixtimLJpo4tfh2QA==}
     dev: true
 
   /@types/json-schema/7.0.9:
@@ -4746,6 +4754,14 @@ packages:
       through2: 4.0.2
     dev: true
 
+  /git-rev-sync/3.0.1:
+    resolution: {integrity: sha512-8xZzUwzukIuU3sasgYt3RELc3Ny7o+tbtvitnnU4a4j3djyZNpJ5JmqVX+K7Xv3gE/i7ln3hGdBfZ00T5WWoow==}
+    dependencies:
+      escape-string-regexp: 1.0.5
+      graceful-fs: 4.1.15
+      shelljs: 0.8.4
+    dev: false
+
   /glob-parent/5.1.2:
     resolution: {integrity: sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==}
     engines: {node: '>= 6'}
@@ -4846,6 +4862,10 @@ packages:
       merge2: 1.4.1
       slash: 3.0.0
     dev: true
+
+  /graceful-fs/4.1.15:
+    resolution: {integrity: sha512-6uHUhOPEBgQ24HM+r6b/QwWfZq+yiFcipKFrOFiBEnWdy5sdzYoi+pJeQaPI5qOLRFqWmAXUPQNsielzdLoecA==}
+    dev: false
 
   /graceful-fs/4.2.8:
     resolution: {integrity: sha512-qkIilPUYcNhJpd33n0GBXTB1MMPp14TxEsEs0pTrsSVucApsYzW5V+Q8Qxhik6KU3evy+qkAAowTByymK0avdg==}
@@ -5028,6 +5048,11 @@ packages:
       strip-ansi: 5.2.0
       through: 2.3.8
     dev: true
+
+  /interpret/1.4.0:
+    resolution: {integrity: sha512-agE4QfB2Lkp9uICn7BAqoscw4SZP9kTE2hxiFI3jBPmXJfdqiahTbUuKGsMoN2GtqL9AxhYioAcVvgsb1HvRbA==}
+    engines: {node: '>= 0.10'}
+    dev: false
 
   /invariant/2.2.4:
     resolution: {integrity: sha512-phJfQVBuaJM5raOpJjSfkiD6BpbCE4Ns//LaXl6wGYtUBY83nWS6Rf9tXm2e8VaK60JEjYldbPif/A2B1C2gNA==}
@@ -6468,6 +6493,13 @@ packages:
     resolution: {integrity: sha1-xYDXfvLPyHUrEySYBg3JeTp6wBw=}
     dev: false
 
+  /rechoir/0.6.2:
+    resolution: {integrity: sha1-hSBLVNuoLVdC4oyWdW70OvUOM4Q=}
+    engines: {node: '>= 0.10'}
+    dependencies:
+      resolve: 1.20.0
+    dev: false
+
   /redent/3.0.0:
     resolution: {integrity: sha512-6tDA8g98We0zd0GvVeMT9arEOnTw9qM03L9cJXaCjrip1OO764RDBLBfrB4cwzNGDj5OA5ioymC9GkizgWJDUg==}
     engines: {node: '>=8'}
@@ -6759,6 +6791,16 @@ packages:
     resolution: {integrity: sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==}
     engines: {node: '>=8'}
     dev: true
+
+  /shelljs/0.8.4:
+    resolution: {integrity: sha512-7gk3UZ9kOfPLIAbslLzyWeGiEqx9e3rxwZM0KE6EL8GlGwjym9Mrlx5/p33bWTu9YG6vcS4MBxYZDHYr5lr8BQ==}
+    engines: {node: '>=4'}
+    hasBin: true
+    dependencies:
+      glob: 7.2.0
+      interpret: 1.4.0
+      rechoir: 0.6.2
+    dev: false
 
   /signal-exit/3.0.5:
     resolution: {integrity: sha512-KWcOiKeQj6ZyXx7zq4YxSMgHRlod4czeBQZrPb8OKcohcqAXShm7E20kEMle9WBt26hFcAf0qLOcp5zmY7kOqQ==}

@@ -78,7 +78,7 @@ export class JsTask extends Task {
                     const mapper: Record<string, string> = {
                       "[[VERSION]]": this.context.config.version as string,
                       "[[PRODUCT_NAME]]": this.context.config.product as string,
-                      "[[GIT_COMMIT_ID]]": "xxx",
+                      "[[GIT_COMMIT_ID]]": this.context.config.commitId,
                     };
                     return mapper[matched];
                   };
