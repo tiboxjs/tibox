@@ -523,9 +523,11 @@ export async function matchImportJsFile(
   const fileContent = await fs.promises.readFile(filePath, {
     encoding: "utf-8",
   });
-  const matchedResult = fileContent.match(
-    /(?<=^((import|export) ((.|\r?\n)* from )?|.*require\()[\'\"]).*(?=[\'\"]\)?;?)/gm
-  );
+  const matchedResult = fileContent
+    .replaceAll(/(\/\/.*|\/\*[^]*?\*\/)/g, "")
+    .match(
+      /(?<=^((import|export) ((.|\r?\n)* from )?|.*require\()[\'\"]).*(?=[\'\"]\)?;?)/gm
+    );
   return matchedResult;
 }
 
