@@ -80,7 +80,7 @@ export class JsTask extends Task {
                       "[[PRODUCT_NAME]]": this.context.config.product as string,
                       "[[GIT_COMMIT_ID]]": this.context.config.commitId,
                     };
-                    return mapper[matched];
+                    return mapper[matched] || matched;
                   };
                   fileContent = _.replace(
                     fileContent,
