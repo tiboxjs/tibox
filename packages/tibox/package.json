@@ -1,6 +1,6 @@
 {
   "name": "@haoqimao/tibox-cli",
-  "version": "0.3.14",
+  "version": "0.3.16",
   "description": "tibox",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
