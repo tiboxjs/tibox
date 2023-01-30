@@ -19,7 +19,7 @@ export type MiniProgramAppConfigSubPackage = {
 
 export type MiniProgramAppConfig = {
   pages: string[];
-  workers: string,
+  workers: string;
   subPackages: MiniProgramAppConfigSubPackage[];
   usingComponents: Record<string, string>;
 };
@@ -43,76 +43,84 @@ export class AppTask extends Task {
       appJsonTask.absolutePath
     );
 
-    const [rootPageTasks, subPagesTask, workersTask, componentTasks, imageTasks] =
-      await Promise.all([
-        // 解析主包下的pages
-        Promise.all(
-          _.map(appJson.pages, (item) => {
-            return options.onRegistPageCallback(path.join("", item));
-          })
-        ),
-        // 解析分包下的pages
-        Promise.all(
-          _.map(
-            appJson.subPackages,
-            async (currentSubPackageItem) =>
-              await Promise.all(
-                _.map(currentSubPackageItem.pages, (pageItem) => {
-                  return options.onRegistPageCallback(
-                    `${currentSubPackageItem.root}/${pageItem}`
-                  );
-                })
-              )
-          )
-        ),
-        parseDir(path.resolve(this.context.config.root, `src/${appJson.workers}`), {
-          recursive: true,
+    const [
+      rootPageTasks,
+      subPagesTask,
+      workersTask,
+      componentTasks,
+      imageTasks,
+    ] = await Promise.all([
+      // 解析主包下的pages
+      Promise.all(
+        _.map(appJson.pages, (item) => {
+          return options.onRegistPageCallback(path.join("", item));
         })
-          .then((fileList) => {
-            return _.map(fileList, (filePath) => {
-              return path.relative(
-                path.join(this.context.config.root, `src/${appJson.workers}`),
-                filePath
-              );
-            });
-          })
-          .then(async (workerFiles) => {
-            return Promise.all(
-              _.map(workerFiles, (workerPath) =>
-                options.onRegistJsTaskCallback(workerPath)
-              )
-            );
-          }),
-        Promise.all(
-          _.map(appJson.usingComponents, (item) => {
-            return options.onRegistComponentCallback(item);
-          })
-        ),
-        parseDir(path.resolve(this.context.config.root, "src/"), {
-          recursive: true,
-        })
-          .then((fileList) => {
-            return _.compact(
-              _.map(fileList, (filePath) => {
-                if (isImage(filePath)) {
-                  return path.relative(
-                    path.join(this.context.config.root, "src"),
-                    filePath
-                  );
-                } else {
-                  return null;
-                }
+      ),
+      // 解析分包下的pages
+      Promise.all(
+        _.map(
+          appJson.subPackages,
+          async (currentSubPackageItem) =>
+            await Promise.all(
+              _.map(currentSubPackageItem.pages, (pageItem) => {
+                return options.onRegistPageCallback(
+                  `${currentSubPackageItem.root}/${pageItem}`
+                );
               })
+            )
+        )
+      ),
+      parseDir(
+        path.resolve(this.context.config.root, `src/${appJson.workers}`),
+        {
+          recursive: true,
+        }
+      )
+        .then((fileList) => {
+          return _.map(fileList, (filePath) => {
+            return path.relative(
+              path.join(this.context.config.root, `src/`),
+              filePath
             );
-          })
-          .then(async (images) => {
-            return Promise.all(
-              _.map(images, (imagePath) =>
-                options.onRegistImageTaskCallback(imagePath)
-              )
-            );
-          }),
-      ]);
+          });
+        })
+        .then(async (workerFiles) => {
+          return Promise.all(
+            _.map(workerFiles, (workerPath) =>
+              options.onRegistJsTaskCallback(workerPath)
+            )
+          );
+        }),
+      Promise.all(
+        _.map(appJson.usingComponents, (item) => {
+          return options.onRegistComponentCallback(item);
+        })
+      ),
+      parseDir(path.resolve(this.context.config.root, "src/"), {
+        recursive: true,
+      })
+        .then((fileList) => {
+          return _.compact(
+            _.map(fileList, (filePath) => {
+              if (isImage(filePath)) {
+                return path.relative(
+                  path.join(this.context.config.root, "src"),
+                  filePath
+                );
+              } else {
+                return null;
+              }
+            })
+          );
+        })
+        .then(async (images) => {
+          return Promise.all(
+            _.map(images, (imagePath) =>
+              options.onRegistImageTaskCallback(imagePath)
+            )
+          );
+        }),
+    ]);
 
     this.tasks = _.concat(
       appJsTask,
@@ -122,7 +130,7 @@ export class AppTask extends Task {
       _.flatten(subPagesTask),
       componentTasks,
       imageTasks,
-      workersTask,
+      workersTask
     );
   }
 
