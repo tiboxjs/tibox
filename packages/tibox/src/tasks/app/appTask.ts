@@ -19,6 +19,7 @@ export type MiniProgramAppConfigSubPackage = {
 
 export type MiniProgramAppConfig = {
   pages: string[];
+  workers: string,
   subPackages: MiniProgramAppConfigSubPackage[];
   usingComponents: Record<string, string>;
 };
@@ -42,7 +43,7 @@ export class AppTask extends Task {
       appJsonTask.absolutePath
     );
 
-    const [rootPageTasks, subPagesTask, componentTasks, imageTasks] =
+    const [rootPageTasks, subPagesTask, workersTask, componentTasks, imageTasks] =
       await Promise.all([
         // 解析主包下的pages
         Promise.all(
@@ -64,6 +65,24 @@ export class AppTask extends Task {
               )
           )
         ),
+        parseDir(path.resolve(this.context.config.root, `src/${appJson.workers}`), {
+          recursive: true,
+        })
+          .then((fileList) => {
+            return _.map(fileList, (filePath) => {
+              return path.relative(
+                path.join(this.context.config.root, `src/${appJson.workers}`),
+                filePath
+              );
+            });
+          })
+          .then(async (workerFiles) => {
+            return Promise.all(
+              _.map(workerFiles, (workerPath) =>
+                options.onRegistJsTaskCallback(workerPath)
+              )
+            );
+          }),
         Promise.all(
           _.map(appJson.usingComponents, (item) => {
             return options.onRegistComponentCallback(item);
@@ -102,7 +121,8 @@ export class AppTask extends Task {
       rootPageTasks,
       _.flatten(subPagesTask),
       componentTasks,
-      imageTasks
+      imageTasks,
+      workersTask,
     );
   }
 
