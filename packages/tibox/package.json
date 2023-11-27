@@ -1,5 +1,5 @@
 {
-  "name": "@tiboxjs/tibox-cli",
+  "name": "@tibox/tibox-cli",
   "version": "0.0.1",
   "description": "tibox",
   "main": "lib/index.js",
