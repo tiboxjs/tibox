@@ -17,7 +17,7 @@ import { absolute2Relative, parseDir, prune } from "../utils";
 // import { createLogger } from "../logger";
 // import chalk from "chalk";
 import { SitemapTask } from "./app/sitemapTask";
-import ora from "ora";
+import { Ora } from "ora";
 
 /**
  * 根节点任务
@@ -49,7 +49,7 @@ export class TaskManager implements ITaskManager {
   }
 
   public async onRegistComponentCallback(
-    componentPath: string
+    componentPath: string,
   ): Promise<ComponentTask> {
     // createLogger().info(
     //   chalk.grey(`onRegistComponentCallback: ${componentPath}`)
@@ -57,7 +57,7 @@ export class TaskManager implements ITaskManager {
     if (path.isAbsolute(componentPath)) {
       componentPath = absolute2Relative(
         this.context.config.root,
-        componentPath
+        componentPath,
       );
     }
     let componentTask = new ComponentTask(this.context, componentPath);
@@ -89,7 +89,7 @@ export class TaskManager implements ITaskManager {
   }
 
   public async onRegistJsonTaskCallback(
-    jsonFilePath: string
+    jsonFilePath: string,
   ): Promise<JsonTask> {
     // createLogger().info(
     //   chalk.grey(`onRegistJsonFileCallback: ${jsonFilePath}`)
@@ -108,7 +108,7 @@ export class TaskManager implements ITaskManager {
   }
 
   public async onRegistWxmlTaskCallback(
-    wxmlFilePath: string
+    wxmlFilePath: string,
   ): Promise<WxmlTask> {
     // createLogger().info(
     //   chalk.grey(`onRegistWxmlFileCallback: ${wxmlFilePath}`)
@@ -142,7 +142,7 @@ export class TaskManager implements ITaskManager {
   }
 
   public async onRegistImageTaskCallback(
-    imageFilePath: string
+    imageFilePath: string,
   ): Promise<ImageTask> {
     // createLogger().info(
     //   chalk.grey(`onRegistImageFileCallback: ${imageFilePath}`)
@@ -182,9 +182,9 @@ export class TaskManager implements ITaskManager {
     this.wholeTask[packageJsonTask.relativeToRootPath] = packageJsonTask;
   }
 
-  public async handle(spinner: ora.Ora): Promise<void> {
+  public async handle(spinner: Ora): Promise<void> {
     await Promise.all(
-      _.map(this.wholeTask, (task) => task.dispatchHandle(this))
+      _.map(this.wholeTask, (task) => task.dispatchHandle(this)),
     );
 
     const config = this.context.config;
@@ -201,14 +201,14 @@ export class TaskManager implements ITaskManager {
       (filePath: string) =>
         path.relative(
           path.join(config.root, config.determinedDestDir),
-          filePath
-        )
+          filePath,
+        ),
     );
 
     const unuseFiles = _.pull(
       allDestFiles,
       ..._.map(allValidDestFiles, (item) => path.normalize(item)),
-      ..._.map(ignoreDestFiles, (item) => path.normalize(item))
+      ..._.map(ignoreDestFiles, (item) => path.normalize(item)),
     );
     if (unuseFiles.length) {
       spinner.info("移除无用文件");
@@ -217,8 +217,8 @@ export class TaskManager implements ITaskManager {
       });
       await Promise.all(
         _.map(unuseFiles, (unuseItem) =>
-          prune(path.resolve(config.root, config.determinedDestDir, unuseItem))
-        )
+          prune(path.resolve(config.root, config.determinedDestDir, unuseItem)),
+        ),
       );
     }
   }

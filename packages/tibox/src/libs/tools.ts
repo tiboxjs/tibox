@@ -1,7 +1,7 @@
 export function parseDestFolderName(
   project: string,
   product: string,
-  mode: string
+  mode: string,
 ): string {
   return `dist-${parseProjectName(project, product, mode)}`;
 }
@@ -9,7 +9,7 @@ export function parseDestFolderName(
 export function parseProjectName(
   project: string,
   product: string,
-  mode: string
+  mode: string,
 ): string {
   return `${project}-${product}-${mode}`;
 }

@@ -15,7 +15,7 @@ export type UploadOutput = {};
  * Returns a Promise containing the build result.
  */
 export async function upload(
-  inlineConfig: InlineConfig = {}
+  inlineConfig: InlineConfig = {},
 ): Promise<UploadOutput> {
   // parallelCallCounts++;
   try {
@@ -30,13 +30,13 @@ export async function upload(
 }
 
 async function doUpload(
-  inlineConfig: InlineConfig = {}
+  inlineConfig: InlineConfig = {},
 ): Promise<UploadOutput> {
   const config = await resolveConfig(
     inlineConfig,
     "upload",
     "default",
-    "production"
+    "production",
   );
   const project = new Project({
     appid: config.appid,
@@ -68,7 +68,7 @@ async function doUpload(
       // onProgressUpdate: console.log,
     });
     console.info(
-      chalk.green(`uploadResult:${JSON.stringify(uploadResult, null, "  ")}`)
+      chalk.green(`uploadResult:${JSON.stringify(uploadResult, null, "  ")}`),
     );
   } catch (error: any) {
     console.error(chalk.red(`code:${error.code}`));
@@ -84,7 +84,7 @@ async function doUpload(
 export type ResolvedUploadOptions = Required<Omit<UploadOptions, "base">>;
 
 export function resolveUploadOptions(
-  raw?: UploadOptions
+  raw?: UploadOptions,
 ): ResolvedUploadOptions {
   const resolved: ResolvedUploadOptions = {
     privateKeyPath: "",

@@ -1,7 +1,7 @@
 import path from "path";
 import _ from "lodash";
 // import chalk from "chalk";
-import loadJsonFile from "load-json-file";
+import { loadJsonFile } from "load-json-file";
 import { Context, Task } from "../task";
 import { ITaskManager } from "..";
 import { parseDir } from "../../utils";
@@ -40,7 +40,7 @@ export class AppTask extends Task {
     ]);
 
     const appJson: MiniProgramAppConfig = await loadJsonFile(
-      appJsonTask.absolutePath
+      appJsonTask.absolutePath,
     );
 
     const [
@@ -54,7 +54,7 @@ export class AppTask extends Task {
       Promise.all(
         _.map(appJson.pages, (item) => {
           return options.onRegistPageCallback(path.join("", item));
-        })
+        }),
       ),
       // 解析分包下的pages
       Promise.all(
@@ -64,37 +64,37 @@ export class AppTask extends Task {
             await Promise.all(
               _.map(currentSubPackageItem.pages, (pageItem) => {
                 return options.onRegistPageCallback(
-                  `${currentSubPackageItem.root}/${pageItem}`
+                  `${currentSubPackageItem.root}/${pageItem}`,
                 );
-              })
-            )
-        )
+              }),
+            ),
+        ),
       ),
       parseDir(
         path.resolve(this.context.config.root, `src/${appJson.workers}`),
         {
           recursive: true,
-        }
+        },
       )
         .then((fileList) => {
           return _.map(fileList, (filePath) => {
             return path.relative(
               path.join(this.context.config.root, `src/`),
-              filePath
+              filePath,
             );
           });
         })
         .then(async (workerFiles) => {
           return Promise.all(
             _.map(workerFiles, (workerPath) =>
-              options.onRegistJsTaskCallback(workerPath)
-            )
+              options.onRegistJsTaskCallback(workerPath),
+            ),
           );
         }),
       Promise.all(
         _.map(appJson.usingComponents, (item) => {
           return options.onRegistComponentCallback(item);
-        })
+        }),
       ),
       parseDir(path.resolve(this.context.config.root, "src/"), {
         recursive: true,
@@ -105,19 +105,19 @@ export class AppTask extends Task {
               if (isImage(filePath)) {
                 return path.relative(
                   path.join(this.context.config.root, "src"),
-                  filePath
+                  filePath,
                 );
               } else {
                 return null;
               }
-            })
+            }),
           );
         })
         .then(async (images) => {
           return Promise.all(
             _.map(images, (imagePath) =>
-              options.onRegistImageTaskCallback(imagePath)
-            )
+              options.onRegistImageTaskCallback(imagePath),
+            ),
           );
         }),
     ]);
@@ -130,7 +130,7 @@ export class AppTask extends Task {
       _.flatten(subPagesTask),
       componentTasks,
       imageTasks,
-      workersTask
+      workersTask,
     );
   }
 

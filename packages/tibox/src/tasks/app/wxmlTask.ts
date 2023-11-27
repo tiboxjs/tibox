@@ -21,8 +21,8 @@ export class WxmlTask extends Task {
         const matchedResult = await matchImportWxmlFile(
           path.resolve(
             this.context.config.root,
-            path.join("src", this.filePath)
-          )
+            path.join("src", this.filePath),
+          ),
         );
 
         const wxmlTasks = await Promise.all(
@@ -33,11 +33,11 @@ export class WxmlTask extends Task {
             const filePath = path.normalize(
               path.isAbsolute(item)
                 ? absolute2Relative(this.context.config.root, item)
-                : path.join(path.dirname(this.filePath), item)
+                : path.join(path.dirname(this.filePath), item),
             );
 
             return options.onRegistWxmlTaskCallback(filePath);
-          })
+          }),
         );
         this.tasks = wxmlTasks || [];
       } catch (error: any) {
@@ -45,7 +45,7 @@ export class WxmlTask extends Task {
           throw error;
         }
         createLogger().info(
-          chalk.yellow(`${this.absolutePath} 文件不存在，忽略解析`)
+          chalk.yellow(`${this.absolutePath} 文件不存在，忽略解析`),
         );
       }
     }
@@ -59,7 +59,7 @@ export class WxmlTask extends Task {
         if (isNeedHandle(this.relativeToRootPath, stats.mtimeMs)) {
           const distPath = path.join(
             this.context.config.determinedDestDir,
-            this.filePath
+            this.filePath,
           );
           return fs.ensureDir(path.dirname(distPath)).then(() => {
             return new Promise((resolve, reject) => {

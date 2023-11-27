@@ -22,7 +22,7 @@ export class JsonTask extends Task {
         if (isNeedHandle(this.relativeToRootPath, stats.mtimeMs)) {
           const distPath = path.join(
             this.context.config.determinedDestDir,
-            this.filePath
+            this.filePath,
           );
           return fs.ensureDir(path.dirname(distPath)).then(() => {
             return new Promise((resolve, reject) => {

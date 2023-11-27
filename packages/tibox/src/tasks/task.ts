@@ -33,7 +33,7 @@ export abstract class Task {
   get relativeToRootPath(): string {
     return path.relative(
       this.context.config.root,
-      path.join("src", this.filePath)
+      path.join("src", this.filePath),
     );
   }
 

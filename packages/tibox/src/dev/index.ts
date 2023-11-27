@@ -55,30 +55,32 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
       inlineConfig,
       "dev",
       "default",
-      "production"
+      "production",
     );
 
     spinner.text = "处理ext文件";
     // TODO: ext.js的处理，还得优化，暂时让小程序跑起来
     await fs.ensureDir(
-      path.resolve(config.root, config.determinedDestDir, "ext")
+      path.resolve(config.root, config.determinedDestDir, "ext"),
     );
 
     const stream = fs.createWriteStream(
       path.resolve(config.root, `${config.determinedDestDir}/ext/ext.js`),
-      { flags: "w" }
+      { flags: "w" },
     );
     stream.write(
       Buffer.from(
-        `module.exports = ${JSON.stringify(config.ext || {}, null, 2)}${os.EOL}`
-      )
+        `module.exports = ${JSON.stringify(config.ext || {}, null, 2)}${
+          os.EOL
+        }`,
+      ),
     );
 
     spinner.text = "解析项目目录文件";
     const parseResult = await parse(config);
 
     let isHandleIdeOpened = false;
-    const debounceFunction = debounce(250, false, async () => {
+    const debounceFunction = debounce(250, async () => {
       const watchingSpinner = ora("处理中...").start();
       const start = Date.now();
 
@@ -100,7 +102,7 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
         const cliCMD = cmdCli();
         const cmd = `${cliCMD} open --project "${path.resolve(
           config.root,
-          config.determinedDestDir
+          config.determinedDestDir,
         )}"`;
         const cliSpinner = ora("正在启动开发工具...").start();
         exec(cmd, { timeout: 15000 }, (err) => {
@@ -126,7 +128,7 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
           ],
           cwd: config.root,
           // ignoreInitial: true,
-        }
+        },
       )
       .on("all", async (event, filePath) => {
         // createLogger().info(chalk.grey(`${event}, ${ppath}`));
@@ -135,7 +137,7 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
       .on("ready", async () => {
         await traceOutUnuse(
           parseResult.taskManager.context,
-          parseResult.taskManager.wholeTask
+          parseResult.taskManager.wholeTask,
         );
         spinner.succeed("初始化完成，开始监听...");
       })

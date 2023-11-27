@@ -36,7 +36,7 @@ export class PackageJsonTask extends Task {
         if (needHandle) {
           const distPath = path.join(
             this.context.config.determinedDestDir,
-            this.filePath
+            this.filePath,
           );
           return fs
             .ensureDir(path.dirname(distPath))
@@ -68,13 +68,13 @@ export class PackageJsonTask extends Task {
                     if (err) {
                       if (
                         /(Unexpected token < in JSON at position 0)/.test(
-                          err.message
+                          err.message,
                         )
                       ) {
                         createLogger().error(
                           chalk.red(
-                            "执行cnpm安装时，registry服务响应异常，请检查网络是否正常"
-                          )
+                            "执行cnpm安装时，registry服务响应异常，请检查网络是否正常",
+                          ),
                         );
                         resolve("");
                       } else {
@@ -83,7 +83,7 @@ export class PackageJsonTask extends Task {
                     } else {
                       resolve("");
                     }
-                  }
+                  },
                 );
               }).catch((err) => {
                 createLogger().error(chalk.red(err));
@@ -98,13 +98,13 @@ export class PackageJsonTask extends Task {
                   exec(
                     `${cliCMD} build-npm --project "${path.resolve(
                       this.context.config.root,
-                      this.context.config.determinedDestDir
+                      this.context.config.determinedDestDir,
                     )}"`,
                     { timeout: 30000 },
                     (err) => {
                       if (!err) {
                         createLogger().info(
-                          chalk.green(`构建npm包成功 ${Date.now() - time}ms`)
+                          chalk.green(`构建npm包成功 ${Date.now() - time}ms`),
                         );
                       } else {
                         const handled = cmdCliFaid(err);
@@ -113,7 +113,7 @@ export class PackageJsonTask extends Task {
                         }
                       }
                       resolve();
-                    }
+                    },
                   );
                 });
               } else {

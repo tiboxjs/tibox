@@ -7,7 +7,7 @@ import {
 } from "./build";
 import { build } from "esbuild";
 import dotenv from "dotenv";
-import dotenvExpand from "dotenv-expand";
+import { expand } from "dotenv-expand";
 import {
   // createDebugger,
   // isExternalUrl,
@@ -19,7 +19,7 @@ import { AliasOptions, Alias } from "../types/alias";
 import { DevOptions } from "./dev";
 import { resolveUploadOptions, UploadOptions } from "./upload";
 import { parseDestFolderName, parseProjectName } from "./libs/tools";
-import loadJsonFile from "load-json-file";
+import { loadJsonFile } from "load-json-file";
 import { LogLevel } from "./logger";
 import _ from "lodash";
 import git from "git-rev-sync";
@@ -100,7 +100,7 @@ export type gulpHandletype = {
   fn: (
     srcPath: string,
     distRootPath: string,
-    opts?: Record<string, unknown>
+    opts?: Record<string, unknown>,
   ) => handleDistResult[] | handleDistResult;
 };
 
@@ -164,7 +164,7 @@ export async function resolveConfig(
   inlineConfig: InlineConfig,
   command: "build" | "dev" | "upload",
   defaultProduct = "default",
-  defaultMode = "development"
+  defaultMode = "development",
 ): Promise<ResolvedConfig> {
   let config = inlineConfig;
   // let configFileDependencies: string[] = [];
@@ -190,7 +190,7 @@ export async function resolveConfig(
       const loadResult = await loadConfigFromFile(
         configEnv,
         configFile,
-        config.root
+        config.root,
         // config.logLevel
       );
       if (loadResult) {
@@ -210,7 +210,7 @@ export async function resolveConfig(
 
   // resolve root
   const resolvedRoot = normalizePath(
-    config.root ? path.resolve(config.root) : process.cwd()
+    config.root ? path.resolve(config.root) : process.cwd(),
   );
 
   // load .env files
@@ -239,14 +239,14 @@ export async function resolveConfig(
   const determinedProjectName = finalParseProjectName(
     config.project || "project",
     config.product || defaultProduct,
-    config.mode || defaultMode
+    config.mode || defaultMode,
   );
 
   // 格式通常为 dist-agility-default-development
   const determinedDestDir: string = parseDestFolderName(
     config.project || "project",
     config.product || defaultProduct,
-    config.mode || defaultMode
+    config.mode || defaultMode,
   );
 
   const packageJson = (await loadJsonFile("./package.json")) as PackageJson;
@@ -273,7 +273,7 @@ export async function resolveConfig(
         /^weui-miniprogram/.test(name) ||
         _.some(
           packageJson.dependencies,
-          (item, key) => key === name.replace(/\\/, "/")
+          (item, key) => key === name.replace(/\\/, "/"),
         )
       );
     },
@@ -426,7 +426,7 @@ export async function resolveConfig(
 function mergeConfigRecursively(
   a: Record<string, any>,
   b: Record<string, any>,
-  rootPath: string
+  rootPath: string,
 ) {
   const merged: Record<string, any> = { ...a };
   for (const key in b) {
@@ -444,7 +444,7 @@ function mergeConfigRecursively(
       merged[key] = mergeConfigRecursively(
         existing,
         value,
-        rootPath ? `${rootPath}.${key}` : key
+        rootPath ? `${rootPath}.${key}` : key,
       );
       continue;
     }
@@ -468,7 +468,7 @@ function mergeConfigRecursively(
 export function mergeConfig(
   a: Record<string, any>,
   b: Record<string, any>,
-  isRoot = true
+  isRoot = true,
 ): Record<string, any> {
   return mergeConfigRecursively(a, b, isRoot ? "" : ".");
 }
@@ -484,7 +484,7 @@ function normalizeAlias(o: AliasOptions): Alias[] {
         normalizeSingleAlias({
           find,
           replacement: (o as any)[find],
-        })
+        }),
       );
 }
 
@@ -523,7 +523,7 @@ function normalizeSingleAlias({ find, replacement }: Alias): Alias {
 export async function loadConfigFromFile(
   configEnv: ConfigEnv,
   configFile?: string,
-  configRoot: string = process.cwd()
+  configRoot: string = process.cwd(),
   // logLevel?: LogLevel
 ): Promise<{
   path: string;
@@ -571,7 +571,7 @@ export async function loadConfigFromFile(
             // so it throws normal syntax errors when encountering esm syntax
             `Unexpected token`,
             `Unexpected identifier`,
-          ].join("|")
+          ].join("|"),
         );
         if (!ignored.test(e.message)) {
           throw e;
@@ -620,7 +620,7 @@ export async function loadConfigFromFile(
  */
 async function bundleConfigFile(
   fileName: string,
-  mjs = false
+  mjs = false,
 ): Promise<{ code: string; dependencies: string[] }> {
   const result = await build({
     absWorkingDir: process.cwd(),
@@ -682,7 +682,7 @@ interface NodeModuleWithCompile extends NodeModule {
 
 async function loadConfigFromBundledFile(
   fileName: string,
-  bundledCode: string
+  bundledCode: string,
 ): Promise<UserConfig> {
   const extension = path.extname(fileName);
   const defaultLoader = require.extensions[extension]!;
@@ -705,12 +705,12 @@ export function loadEnv(
   product: string,
   mode: string,
   envDir: string,
-  prefix = "TIBOX_"
+  prefix = "TIBOX_",
 ): Record<string, string> {
   if (mode === "local") {
     throw new Error(
       `"local" cannot be used as a mode name because it conflicts with ` +
-        `the .local postfix for .env files.`
+        `the .local postfix for .env files.`,
     );
   }
 
@@ -735,12 +735,10 @@ export function loadEnv(
   for (const file of envFiles) {
     const path = lookupFile(envDir, [file], true);
     if (path) {
-      const parsed = dotenv.parse(fs.readFileSync(path), {
-        debug: !!process.env.DEBUG || undefined,
-      });
+      const parsed = dotenv.parse(fs.readFileSync(path));
 
       // let environment variables use each other
-      dotenvExpand({
+      expand({
         parsed,
         // prevent process.env mutation
         ignoreProcessEnv: true,

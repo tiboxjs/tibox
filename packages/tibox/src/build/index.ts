@@ -166,7 +166,7 @@ export interface BuildOutput {}
  * Returns a Promise containing the build result.
  */
 export async function build(
-  inlineConfig: InlineConfig = {}
+  inlineConfig: InlineConfig = {},
 ): Promise<BuildOutput> {
   // parallelCallCounts++;
   try {
@@ -185,22 +185,22 @@ async function doBuild(inlineConfig: InlineConfig = {}): Promise<BuildOutput> {
     inlineConfig,
     "build",
     "default",
-    "production"
+    "production",
   );
 
   // TODO: ext.js的处理，还得优化，暂时让小程序跑起来
   await fs.ensureDir(
-    path.resolve(config.root, config.determinedDestDir, "ext")
+    path.resolve(config.root, config.determinedDestDir, "ext"),
   );
 
   const stream = fs.createWriteStream(
     path.resolve(config.root, `${config.determinedDestDir}/ext/ext.js`),
-    { flags: "w" }
+    { flags: "w" },
   );
   stream.write(
     Buffer.from(
-      `module.exports = ${JSON.stringify(config.ext || {}, null, 2)}${os.EOL}`
-    )
+      `module.exports = ${JSON.stringify(config.ext || {}, null, 2)}${os.EOL}`,
+    ),
   );
 
   const parseResult = await parse(config);

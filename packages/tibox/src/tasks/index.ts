@@ -12,7 +12,7 @@ import { ImageTask } from "./app/imageTask";
 export type OnRegistPageCallback = (pagePath: string) => Promise<PageTask>;
 
 export type OnRegistComponentCallback = (
-  componentPath: string
+  componentPath: string,
 ) => Promise<ComponentTask>;
 
 export type OnRegistJsTaskCallback = (jsPath: string) => Promise<JsTask>;
@@ -24,7 +24,7 @@ export type OnRegistWxmlTaskCallback = (wxmlPath: string) => Promise<WxmlTask>;
 export type OnRegistWxssTaskCallback = (wxssPath: string) => Promise<WxssTask>;
 
 export type OnRegistImageTaskCallback = (
-  imagePath: string
+  imagePath: string,
 ) => Promise<ImageTask>;
 
 // /**

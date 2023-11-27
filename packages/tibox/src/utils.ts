@@ -64,7 +64,7 @@ interface DebuggerOptions {
 
 export function createDebugger(
   ns: string,
-  options: DebuggerOptions = {}
+  options: DebuggerOptions = {},
 ): debug.Debugger["log"] {
   const log = debug(ns);
   const { onlyWhenFocused } = options;
@@ -216,7 +216,7 @@ export function isObject(value: unknown): value is Record<string, any> {
 export function lookupFile(
   dir: string,
   formats: string[],
-  pathOnly = false
+  pathOnly = false,
 ): string | undefined {
   for (const format of formats) {
     const fullPath = path.join(dir, format);
@@ -515,7 +515,7 @@ export function lookupFile(
 // }
 
 export async function matchImportJsFile(
-  filePath: string
+  filePath: string,
 ): Promise<RegExpMatchArray | null> {
   if (!path.isAbsolute(filePath)) {
     throw new Error(`The parameter filePath(${filePath}) is not absolute path`);
@@ -526,13 +526,13 @@ export async function matchImportJsFile(
   const matchedResult = fileContent
     .replaceAll(/(\/\/.*|\/\*[^]*?\*\/)/g, "")
     .match(
-      /(?<=^((import|export) ((.|\r?\n)* from )?|.*require\()[\'\"]).*(?=[\'\"]\)?;?)/gm
+      /(?<=^((import|export) ((.|\r?\n)* from )?|.*require\()[\'\"]).*(?=[\'\"]\)?;?)/gm,
     );
   return matchedResult;
 }
 
 export async function matchImportWxmlFile(
-  filePath: string
+  filePath: string,
 ): Promise<RegExpMatchArray | null> {
   if (!path.isAbsolute(filePath)) {
     throw new Error(`The parameter filePath(${filePath}) is not absolute path`);
@@ -541,13 +541,13 @@ export async function matchImportWxmlFile(
     encoding: "utf-8",
   });
   const matchedResult = fileContent.match(
-    /(?<=^ *\<import *src *\= *[\'\"]).*(?=[\'\"] *[\/\>|\> *(\<\/import\>)])/gm
+    /(?<=^ *\<import *src *\= *[\'\"]).*(?=[\'\"] *[\/\>|\> *(\<\/import\>)])/gm,
   );
   return matchedResult;
 }
 
 export async function matchImportWxssFile(
-  filePath: string
+  filePath: string,
 ): Promise<RegExpMatchArray | null> {
   if (!path.isAbsolute(filePath)) {
     throw new Error(`The parameter filePath(${filePath}) is not absolute path`);
@@ -556,7 +556,7 @@ export async function matchImportWxssFile(
     encoding: "utf-8",
   });
   const matchedResult = fileContent.match(
-    /(?<=^@import *[\'\"]).*(?=[\'\"];?)/gm
+    /(?<=^@import *[\'\"]).*(?=[\'\"];?)/gm,
   );
   return matchedResult;
 }
@@ -581,7 +581,7 @@ export async function parseDir(
     recursive?: boolean;
     logLevel?: LogLevel;
     ignore?: RegExp;
-  } = {}
+  } = {},
 ): Promise<string[]> {
   const { recursive, logLevel, ignore } = options;
   // const logger = createLogger(logLevel);
@@ -604,7 +604,7 @@ export async function parseDir(
               recursive,
               logLevel,
               ignore,
-            })
+            }),
           );
         }
         return result;
@@ -657,7 +657,7 @@ export async function prune(filePath: string): Promise<boolean> {
 export function absolute2Relative(root: string, filePath: string): string {
   return path.relative(
     path.resolve(root, "src/"),
-    path.normalize(`src/${filePath}`)
+    path.normalize(`src/${filePath}`),
   );
 }
 
@@ -680,7 +680,7 @@ export function cmdCliFaid(err: Error | null): boolean {
   if (
     err &&
     /(command not found)|(is not recognized as an internal or external command)/.test(
-      err.message
+      err.message,
     )
   ) {
     createLogger().info(
@@ -689,8 +689,8 @@ export function cmdCliFaid(err: Error | null): boolean {
           isWindows
             ? "(例如：C:\\Program Files (x86)\\Tencent\\微信web开发者工具)"
             : "(例如：/Applications/wechatwebdevtools.app/Contents/MacOS)"
-        }`
-      )
+        }`,
+      ),
     );
     return true;
   } else {
@@ -700,7 +700,7 @@ export function cmdCliFaid(err: Error | null): boolean {
 
 export async function traceOutUnuse(
   context: Context,
-  wholeTask: Record<string, Task>
+  wholeTask: Record<string, Task>,
 ): Promise<void> {
   const logger = createLogger(context.config.logLevel);
   /**
@@ -722,23 +722,23 @@ export async function traceOutUnuse(
    */
   let parseResult: string[] = [];
   for (const item of _.map(needWatches, (item) =>
-    path.resolve(context.config.root, item)
+    path.resolve(context.config.root, item),
   )) {
     parseResult = _.concat(
       parseResult,
-      await parseDir(item, { recursive: true })
+      await parseDir(item, { recursive: true }),
     );
   }
   // 过滤掉我们并不想跟踪的文件
   parseResult = _.filter(parseResult, (item) => !ignoreFiles.test(item));
   parseResult = _.map(parseResult, (item) =>
-    path.relative(context.config.root, item)
+    path.relative(context.config.root, item),
   );
 
   // logger.info(chalk.blueBright(`allFiles: ${parseResult.length}`));
   const unTrackedFiles = _.pull(
     parseResult,
-    ..._.map(wholeTask, (task) => task.relativeToRootPath)
+    ..._.map(wholeTask, (task) => task.relativeToRootPath),
   );
 
   // const trackedFiles = taskManager.files();
@@ -749,8 +749,8 @@ export async function traceOutUnuse(
   if (unTrackedFiles.length) {
     logger.info(
       chalk.yellow(
-        `\n发现以下${unTrackedFiles.length}个文件存在于项目中，但是并未被引用。请检查依赖关系是否正确，在依赖关系被解决前TiBox不会对这些文件做处理`
-      )
+        `\n发现以下${unTrackedFiles.length}个文件存在于项目中，但是并未被引用。请检查依赖关系是否正确，在依赖关系被解决前TiBox不会对这些文件做处理`,
+      ),
     );
     _.forEach(unTrackedFiles, (item, index) => {
       logger.info(chalk.yellow(`  ${index + 1}. ${item}`));

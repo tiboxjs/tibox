@@ -46,7 +46,7 @@ export interface LoggerOptions {
 
 export function createLogger(
   level: LogLevel = "info",
-  options: LoggerOptions = {}
+  options: LoggerOptions = {},
 ): Logger {
   if (options.customLogger) {
     return options.customLogger;
@@ -68,8 +68,8 @@ export function createLogger(
             type === "info"
               ? chalk.cyan.bold(prefix)
               : type === "warn"
-              ? chalk.yellow.bold(prefix)
-              : chalk.red.bold(prefix);
+                ? chalk.yellow.bold(prefix)
+                : chalk.red.bold(prefix);
           return `${chalk.dim(new Date().toLocaleTimeString())} ${tag} ${msg}`;
         } else {
           return msg;

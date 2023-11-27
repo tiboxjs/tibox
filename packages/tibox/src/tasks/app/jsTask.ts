@@ -34,11 +34,11 @@ export class JsTask extends Task {
               path.isAbsolute(item)
                 ? absolute2Relative(this.context.config.root, item)
                 : isDependencies(item)
-                ? item
-                : path.join(path.dirname(this.filePath), item)
+                  ? item
+                  : path.join(path.dirname(this.filePath), item),
             );
             return options.onRegistJsTaskCallback(filePath);
-          })
+          }),
         );
         this.tasks = jsTasks;
       } catch (error: any) {
@@ -46,7 +46,7 @@ export class JsTask extends Task {
           throw error;
         }
         createLogger().info(
-          chalk.yellow(`${this.absolutePath} 文件不存在，忽略解析`)
+          chalk.yellow(`${this.absolutePath} 文件不存在，忽略解析`),
         );
       }
     } else {
@@ -65,7 +65,7 @@ export class JsTask extends Task {
         if (isNeedHandle(this.relativeToRootPath, stats.mtimeMs)) {
           const distPath = path.join(
             this.context.config.determinedDestDir,
-            this.filePath
+            this.filePath,
           );
           await fs.ensureDir(path.dirname(distPath));
           return new Promise((resolve, reject) => {
@@ -85,12 +85,12 @@ export class JsTask extends Task {
                   fileContent = _.replace(
                     fileContent,
                     /\[\[.*?\]\]/g,
-                    replacer
+                    replacer,
                   );
 
                   buffer = Buffer.from(fileContent);
                   cb(null, buffer);
-                })
+                }),
               )
               .pipe(fs.createWriteStream(distPath))
               .on("finish", () => {

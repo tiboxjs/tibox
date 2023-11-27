@@ -22,7 +22,7 @@ export class SitemapTask extends Task {
   }
   public override onHandle(options: ITaskManager): Promise<void> {
     return isFileExist(
-      path.resolve(this.context.config.root, this.filePath)
+      path.resolve(this.context.config.root, this.filePath),
     ).then((flag) => {
       if (flag) {
         return fs.promises
@@ -38,9 +38,9 @@ export class SitemapTask extends Task {
                     fs.createWriteStream(
                       path.join(
                         this.context.config.determinedDestDir,
-                        this.filePath
-                      )
-                    )
+                        this.filePath,
+                      ),
+                    ),
                   )
                   .on("finish", () => {
                     resolve();

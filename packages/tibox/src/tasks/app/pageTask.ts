@@ -2,7 +2,7 @@ import { ITaskManager } from "..";
 import _ from "lodash";
 import path from "path";
 import { absolute2Relative } from "../../utils";
-import loadJsonFile from "load-json-file";
+import { loadJsonFile } from "load-json-file";
 import { Task } from "../task";
 import fs from "fs-extra";
 import { createLogger } from "../../logger";
@@ -23,12 +23,12 @@ export class PageTask extends Task {
     const pageJsonFileAbsolutePath = path.resolve(
       this.context.config.root,
       "src",
-      `${this.filePath}.json`
+      `${this.filePath}.json`,
     );
     try {
       await fs.promises.access(pageJsonFileAbsolutePath);
       const pageJson: MiniProgramPageConfig = await loadJsonFile(
-        pageJsonFileAbsolutePath
+        pageJsonFileAbsolutePath,
       );
       if (pageJson.usingComponents) {
         const otherComponentTasks = await Promise.all(
@@ -37,18 +37,18 @@ export class PageTask extends Task {
             if (path.isAbsolute(componentPath)) {
               targetPath = absolute2Relative(
                 this.context.config.root,
-                componentPath
+                componentPath,
               );
             } else if (componentPath.startsWith(".")) {
               targetPath = path.relative(
                 this.context.config.root,
-                path.resolve(path.dirname(this.filePath), componentPath)
+                path.resolve(path.dirname(this.filePath), componentPath),
               );
             } else {
               targetPath = componentPath;
             }
             return options.onRegistComponentCallback(targetPath);
-          })
+          }),
         );
         this.tasks = _.concat(this.tasks, otherComponentTasks);
       }
@@ -57,7 +57,7 @@ export class PageTask extends Task {
         throw error;
       }
       createLogger().info(
-        chalk.yellow(`${pageJsonFileAbsolutePath} 文件不存在，忽略解析`)
+        chalk.yellow(`${pageJsonFileAbsolutePath} 文件不存在，忽略解析`),
       );
     }
   }

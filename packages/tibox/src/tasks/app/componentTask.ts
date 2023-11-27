@@ -4,7 +4,7 @@ import fs from "fs-extra";
 import { createLogger /* , Logger */ } from "../../logger";
 import { Task } from "../task";
 import { ITaskManager } from "..";
-import loadJsonFile from "load-json-file";
+import { loadJsonFile } from "load-json-file";
 import { absolute2Relative } from "../../utils";
 import { DEBUGING } from "../../constants";
 import chalk from "chalk";
@@ -32,12 +32,16 @@ export class ComponentTask extends Task {
       const componentJsonFileAbsolutePath = path.resolve(
         this.context.config.root,
         "src",
-        `${this.filePath}.json`
+        `${this.filePath}.json`,
       );
       try {
         await fs.promises.access(componentJsonFileAbsolutePath);
         const componentJson: MiniProgramComponentConfig = await loadJsonFile(
-          path.resolve(this.context.config.root, "src", `${this.filePath}.json`)
+          path.resolve(
+            this.context.config.root,
+            "src",
+            `${this.filePath}.json`,
+          ),
         );
         if (componentJson.usingComponents) {
           const otherComponentTasks = await Promise.all(
@@ -46,21 +50,21 @@ export class ComponentTask extends Task {
               if (path.isAbsolute(componentPath)) {
                 targetPath = absolute2Relative(
                   this.context.config.root,
-                  componentPath
+                  componentPath,
                 );
               } else if (componentPath.startsWith(".")) {
                 targetPath = path.relative(
                   path.join(this.context.config.root, "src"),
                   path.resolve(
                     path.dirname(path.join("src", this.filePath)),
-                    componentPath
-                  )
+                    componentPath,
+                  ),
                 );
               } else {
                 targetPath = componentPath;
               }
               return options.onRegistComponentCallback(targetPath);
-            })
+            }),
           );
           this.tasks = _.concat(this.tasks, otherComponentTasks);
         }
@@ -69,7 +73,7 @@ export class ComponentTask extends Task {
           throw error;
         }
         createLogger().info(
-          chalk.yellow(`${componentJsonFileAbsolutePath} 文件不存在，忽略解析`)
+          chalk.yellow(`${componentJsonFileAbsolutePath} 文件不存在，忽略解析`),
         );
       }
     }

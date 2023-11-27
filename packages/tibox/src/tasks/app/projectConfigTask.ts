@@ -38,18 +38,18 @@ export class ProjectConfigTask extends Task {
                   projectConfigJson.projectname =
                     this.context.config.determinedProjectName;
                   buffer = Buffer.from(
-                    JSON.stringify(projectConfigJson, null, 2)
+                    JSON.stringify(projectConfigJson, null, 2),
                   );
                   cb(null, buffer);
-                })
+                }),
               )
               .pipe(
                 fs.createWriteStream(
                   path.join(
                     this.context.config.determinedDestDir,
-                    this.filePath
-                  )
-                )
+                    this.filePath,
+                  ),
+                ),
               )
               .on("finish", () => {
                 resolve();

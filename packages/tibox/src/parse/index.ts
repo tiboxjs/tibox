@@ -93,7 +93,7 @@ export enum TFileType {
  * @returns 小程序全解析后的结果
  */
 export async function parse(
-  resolvedConfig: ResolvedConfig
+  resolvedConfig: ResolvedConfig,
 ): Promise<ParseResult> {
   try {
     return await doParse(resolvedConfig);

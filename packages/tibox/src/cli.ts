@@ -56,7 +56,7 @@ cli
     `[string] 设置mode，内置development、production，也可以是其他自定义的值`,
     {
       default: "development",
-    }
+    },
   );
 
 cli
@@ -78,7 +78,7 @@ cli
       });
     } catch (e: any) {
       createLogger(options.logLevel).error(
-        chalk.red(`error during build:\n${e.stack}`)
+        chalk.red(`error during build:\n${e.stack}`),
       );
       process.exit(1);
     }
@@ -88,7 +88,7 @@ cli
   .command("build [root]", "构建小程序")
   .action(async (root: string, options: BuildOptions & GlobalCLIOptions) => {
     createLogger(options.logLevel).warn(
-      chalk.green(`root:${root}, options:${JSON.stringify(options, null, 2)}`)
+      chalk.green(`root:${root}, options:${JSON.stringify(options, null, 2)}`),
     );
     const { build } = await import("./build");
     const buildOptions = cleanOptions(options) as BuildOptions;
@@ -105,7 +105,7 @@ cli
       });
     } catch (e: any) {
       createLogger(options.logLevel).error(
-        chalk.red(`error during build:\n${e.stack}`)
+        chalk.red(`error during build:\n${e.stack}`),
       );
       process.exit(1);
     }
@@ -119,7 +119,7 @@ cli
   .option("--robot <robot>", "指定使用哪一个 ci 机器人，可选值：1 ~ 30")
   .action(async (root: string, options: UploadOptions & GlobalCLIOptions) => {
     createLogger(options.logLevel).warn(
-      chalk.green(`root:${root}, options:${JSON.stringify(options, null, 2)}`)
+      chalk.green(`root:${root}, options:${JSON.stringify(options, null, 2)}`),
     );
     const { upload } = await import("./upload");
     const uploadOptions = cleanOptions(options) as UploadOptions;
@@ -136,7 +136,7 @@ cli
       });
     } catch (e: any) {
       createLogger(options.logLevel).error(
-        chalk.red(`error during build:\n${e.stack}`)
+        chalk.red(`error during build:\n${e.stack}`),
       );
       process.exit(1);
     }
