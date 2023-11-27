@@ -17,7 +17,7 @@
     "prettier": "prettier --write \"src/**/*.ts\"",
     "commit:comment": "引导设置规范化的提交信息",
     "commit": "cz",
-    "pub": "pnpm build && pnpm publish --registry=https://registry.npmjs.com"
+    "pub": "pnpm build && pnpm publish --access=public --registry=https://registry.npmjs.com"
   },
   "bin": {
     "tibox": "./bin/tibox.js"
