@@ -13,15 +13,15 @@
     "docs:serve": "vitepress serve docs"
   },
   "devDependencies": {
-    "eslint-define-config": "^1.1.2",
+    "eslint-define-config": "^2.0.0",
     "eslint-plugin-node": "^11.1.0",
-    "vitepress": "^0.20.0"
+    "vitepress": "^1.0.0-rc.31"
   },
   "engines": {
     "node": ">=12.0.0",
     "pnpm": ">=6.0.0"
   },
-  "packageManager": "pnpm",
+  "packageManager": "pnpm@8.11.0",
   "pnpm": {
     "overrides": {}
   }
