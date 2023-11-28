@@ -4,7 +4,7 @@ import fs from "fs-extra";
 import { createLogger /* , Logger */ } from "../../logger";
 import { Task } from "../task";
 import { ITaskManager } from "..";
-import { loadJsonFile } from "load-json-file";
+import loadJsonFile from "load-json-file";
 import { absolute2Relative } from "../../utils";
 import { DEBUGING } from "../../constants";
 import chalk from "chalk";

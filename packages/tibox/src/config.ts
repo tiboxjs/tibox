@@ -19,7 +19,7 @@ import { AliasOptions, Alias } from "../types/alias";
 import { DevOptions } from "./dev";
 import { resolveUploadOptions, UploadOptions } from "./upload";
 import { parseDestFolderName, parseProjectName } from "./libs/tools";
-import { loadJsonFile } from "load-json-file";
+import loadJsonFile from "load-json-file";
 import { LogLevel } from "./logger";
 import _ from "lodash";
 import git from "git-rev-sync";

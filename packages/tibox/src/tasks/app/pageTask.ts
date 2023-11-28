@@ -2,7 +2,7 @@ import { ITaskManager } from "..";
 import _ from "lodash";
 import path from "path";
 import { absolute2Relative } from "../../utils";
-import { loadJsonFile } from "load-json-file";
+import loadJsonFile from "load-json-file";
 import { Task } from "../task";
 import fs from "fs-extra";
 import { createLogger } from "../../logger";

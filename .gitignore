@@ -1,5 +1,5 @@
 node_modules/
-packages/tibox/lib
+packages/tibox/dist
 
 yarn-error.log
 package-lock.json

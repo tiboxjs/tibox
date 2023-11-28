@@ -1,7 +1,7 @@
 import path from "path";
 import _ from "lodash";
 // import chalk from "chalk";
-import { loadJsonFile } from "load-json-file";
+import loadJsonFile from "load-json-file";
 import { Context, Task } from "../task";
 import { ITaskManager } from "..";
 import { parseDir } from "../../utils";
