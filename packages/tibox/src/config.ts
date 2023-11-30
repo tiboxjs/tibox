@@ -34,10 +34,13 @@ export interface ConfigEnv {
 export type UserConfigFn = (env: ConfigEnv) => UserConfig | Promise<UserConfig>;
 export type UserConfigExport = UserConfig | Promise<UserConfig> | UserConfigFn;
 
-export type Plugin = {
+/**
+ * 插件
+ */
+export interface Plugin {
   name: string;
-  handle: (resolveConfig: ResolvedConfig) => NodeJS.ReadWriteStream;
-};
+  transform: (code: string) => string | Promise<string>;
+}
 
 export interface UserConfig {
   /**
@@ -143,8 +146,7 @@ export type ResolvedConfig = Readonly<
     // resolve: ResolveOptions & {
     //   alias: Alias[]
     // }
-    // TODO: 暂时移除了plugin，后期考虑plugin结构
-    // plugins: /* readonly  */ Plugin[];
+    plugins: readonly Plugin[];
     // dev: ResolvedDevOptions;
     build: ResolvedBuildOptions;
     replacer?: (key: string) => string;
@@ -297,7 +299,7 @@ export async function resolveConfig(
       DEV: !isProduction,
       PROD: isProduction,
     },
-    // plugins: config.plugins || [],
+    plugins: config.plugins || [],
     // assetsInclude(file: string) {
     //   return DEFAULT_ASSETS_RE.test(file) || assetsFilter(file);
     // },

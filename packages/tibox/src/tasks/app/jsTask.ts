@@ -87,6 +87,10 @@ export class JsTask extends Task {
                     /\[\[.*?\]\]/g,
                     replacer,
                   );
+                  // TODO: 待优化
+                  this.context.config.plugins.forEach(async (plugin) => {
+                    fileContent = await plugin.transform(fileContent);
+                  });
 
                   buffer = Buffer.from(fileContent);
                   cb(null, buffer);

@@ -4,6 +4,7 @@ import { Task } from "../task";
 import fs from "fs-extra";
 import path from "path";
 import { isNeedHandle } from "../../watcher";
+import through from "through2";
 
 export class JsonTask extends Task {
   public id(): string {
@@ -27,6 +28,22 @@ export class JsonTask extends Task {
           return fs.ensureDir(path.dirname(distPath)).then(() => {
             return new Promise((resolve, reject) => {
               fs.createReadStream(path.join("src/", this.filePath))
+                .pipe(
+                  through.obj((buffer, encode, cb) => {
+                    let fileContent = buffer.toString(encode) as string;
+
+                    console.log(
+                      `plugin count: ${this.context.config.plugins.length}`,
+                    );
+                    // TODO: 待优化
+                    this.context.config.plugins.forEach(async (plugin) => {
+                      fileContent = await plugin.transform(fileContent);
+                    });
+
+                    buffer = Buffer.from(fileContent);
+                    cb(null, buffer);
+                  }),
+                )
                 .pipe(fs.createWriteStream(distPath))
                 .on("finish", () => {
                   resolve();
