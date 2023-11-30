@@ -589,7 +589,7 @@ export async function parseDir(
     throw Error(`${pathDir} is not a absolute path!`);
   }
 
-  if (!ignore || !ignore.test(pathDir)) {
+  if ((!ignore || !ignore.test(pathDir)) && (await fs.exists(pathDir))) {
     const stat = await fs.stat(pathDir);
     if (stat.isFile()) {
       return [path.resolve(pathDir)];
