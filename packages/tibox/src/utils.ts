@@ -1,12 +1,13 @@
-import debug from "debug";
+// import debug from "debug";
 // import chalk from 'chalk'
-import fs, { constants } from "fs-extra";
-import os from "os";
-import path from "path";
-import { createLogger, LogLevel } from "./logger";
-import _ from "lodash";
-import { Context, Task } from "./tasks/task";
-import chalk from "chalk";
+import { readFileSync, existsSync, statSync, constants } from 'fs'
+import { readFile, readdir, mkdir, stat, access, rm } from 'fs/promises'
+import os from 'os'
+import path from 'path'
+import { createLogger, LogLevel } from './logger'
+import _ from 'lodash'
+import { Context, Task } from './tasks/task'
+import chalk from 'chalk'
 // import { pathToFileURL, URL } from 'url'
 // import { FS_PREFIX, DEFAULT_EXTENSIONS, VALID_ID_PREFIX } from './constants'
 // import resolve from 'resolve'
@@ -19,7 +20,7 @@ import chalk from "chalk";
 // } from '@ampproject/remapping/dist/types/types'
 
 export function slash(p: string): string {
-  return p.replace(/\\/g, "/");
+  return p.replace(/\\/g, '/')
 }
 
 // // Strip valid id prefix. This is prepended to resolved Ids that are
@@ -54,7 +55,7 @@ export function slash(p: string): string {
 // }
 
 // set in bin/vite.js
-const filter = process.env.VITE_DEBUG_FILTER;
+/* const filter = process.env.VITE_DEBUG_FILTER;
 
 const DEBUG = process.env.DEBUG;
 
@@ -78,13 +79,13 @@ export function createDebugger(
     }
     log(msg, ...args);
   };
-}
+} */
 
-export const isWindows = os.platform() === "win32";
+export const isWindows = os.platform() === 'win32'
 // const VOLUME_RE = /^[A-Z]:/i
 
 export function normalizePath(id: string): string {
-  return path.posix.normalize(isWindows ? slash(id) : id);
+  return path.posix.normalize(isWindows ? slash(id) : id)
 }
 
 // export function fsPathFromId(id: string): string {
@@ -206,27 +207,33 @@ export function normalizePath(id: string): string {
 // }
 
 export function isObject(value: unknown): value is Record<string, any> {
-  return Object.prototype.toString.call(value) === "[object Object]";
+  return Object.prototype.toString.call(value) === '[object Object]'
 }
 
 // export function isDefined<T>(value: T | undefined | null): value is T {
 //   return value != null
 // }
 
-export function lookupFile(
-  dir: string,
-  formats: string[],
-  pathOnly = false,
-): string | undefined {
+export function lookupFile(dir: string, formats: string[], pathOnly = false): string | undefined {
   for (const format of formats) {
-    const fullPath = path.join(dir, format);
-    if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
-      return pathOnly ? fullPath : fs.readFileSync(fullPath, "utf-8");
+    const fullPath = path.join(dir, format)
+    if (existsSync(fullPath) && statSync(fullPath).isFile()) {
+      return pathOnly ? fullPath : readFileSync(fullPath, 'utf-8')
     }
   }
-  const parentDir = path.dirname(dir);
+  const parentDir = path.dirname(dir)
   if (parentDir !== dir) {
-    return lookupFile(parentDir, formats, pathOnly);
+    return lookupFile(parentDir, formats, pathOnly)
+  }
+}
+
+/**
+ * 确保路径存在
+ * @param path 路径
+ */
+export async function ensureDir(path: string): Promise<void> {
+  if (!isFileExist(path)) {
+    await mkdir(path, { recursive: true })
   }
 }
 
@@ -514,51 +521,39 @@ export function lookupFile(
 //   return { host, name }
 // }
 
-export async function matchImportJsFile(
-  filePath: string,
-): Promise<RegExpMatchArray | null> {
+export async function matchImportJsFile(filePath: string): Promise<RegExpMatchArray | null> {
   if (!path.isAbsolute(filePath)) {
-    throw new Error(`The parameter filePath(${filePath}) is not absolute path`);
+    throw new Error(`The parameter filePath(${filePath}) is not absolute path`)
   }
-  const fileContent = await fs.promises.readFile(filePath, {
-    encoding: "utf-8",
-  });
+  const fileContent = await readFile(filePath, {
+    encoding: 'utf-8',
+  })
   const matchedResult = fileContent
-    .replaceAll(/(\/\/.*|\/\*[^]*?\*\/)/g, "")
-    .match(
-      /(?<=^((import|export) ((.|\r?\n)* from )?|.*require\()[\'\"]).*(?=[\'\"]\)?;?)/gm,
-    );
-  return matchedResult;
+    .replaceAll(/(\/\/.*|\/\*[^]*?\*\/)/g, '')
+    .match(/(?<=^((import|export) ((.|\r?\n)* from )?|.*require\()[\'\"]).*(?=[\'\"]\)?;?)/gm)
+  return matchedResult
 }
 
-export async function matchImportWxmlFile(
-  filePath: string,
-): Promise<RegExpMatchArray | null> {
+export async function matchImportWxmlFile(filePath: string): Promise<RegExpMatchArray | null> {
   if (!path.isAbsolute(filePath)) {
-    throw new Error(`The parameter filePath(${filePath}) is not absolute path`);
+    throw new Error(`The parameter filePath(${filePath}) is not absolute path`)
   }
-  const fileContent = await fs.promises.readFile(filePath, {
-    encoding: "utf-8",
-  });
-  const matchedResult = fileContent.match(
-    /(?<=^ *\<import *src *\= *[\'\"]).*(?=[\'\"] *[\/\>|\> *(\<\/import\>)])/gm,
-  );
-  return matchedResult;
+  const fileContent = await readFile(filePath, {
+    encoding: 'utf-8',
+  })
+  const matchedResult = fileContent.match(/(?<=^ *\<import *src *\= *[\'\"]).*(?=[\'\"] *[\/\>|\> *(\<\/import\>)])/gm)
+  return matchedResult
 }
 
-export async function matchImportWxssFile(
-  filePath: string,
-): Promise<RegExpMatchArray | null> {
+export async function matchImportWxssFile(filePath: string): Promise<RegExpMatchArray | null> {
   if (!path.isAbsolute(filePath)) {
-    throw new Error(`The parameter filePath(${filePath}) is not absolute path`);
+    throw new Error(`The parameter filePath(${filePath}) is not absolute path`)
   }
-  const fileContent = await fs.promises.readFile(filePath, {
-    encoding: "utf-8",
-  });
-  const matchedResult = fileContent.match(
-    /(?<=^@import *[\'\"]).*(?=[\'\"];?)/gm,
-  );
-  return matchedResult;
+  const fileContent = await readFile(filePath, {
+    encoding: 'utf-8',
+  })
+  const matchedResult = fileContent.match(/(?<=^@import *[\'\"]).*(?=[\'\"];?)/gm)
+  return matchedResult
 }
 
 /**
@@ -567,7 +562,7 @@ export async function matchImportWxssFile(
  * @returns true 如果是图片文件
  */
 export function isImage(filePath: string): boolean {
-  return /\.(png|jpg|svg)$/.test(filePath);
+  return /\.(png|jpg|svg)$/.test(filePath)
 }
 
 /**
@@ -578,25 +573,25 @@ export function isImage(filePath: string): boolean {
 export async function parseDir(
   pathDir: string,
   options: {
-    recursive?: boolean;
-    logLevel?: LogLevel;
-    ignore?: RegExp;
-  } = {},
+    recursive?: boolean
+    logLevel?: LogLevel
+    ignore?: RegExp
+  } = {}
 ): Promise<string[]> {
-  const { recursive, logLevel, ignore } = options;
+  const { recursive, logLevel, ignore } = options
   // const logger = createLogger(logLevel);
   if (!path.isAbsolute(pathDir)) {
-    throw Error(`${pathDir} is not a absolute path!`);
+    throw Error(`${pathDir} is not a absolute path!`)
   }
 
-  if ((!ignore || !ignore.test(pathDir)) && (await fs.exists(pathDir))) {
-    const stat = await fs.stat(pathDir);
-    if (stat.isFile()) {
-      return [path.resolve(pathDir)];
+  if ((!ignore || !ignore.test(pathDir)) && (await isFileExist(pathDir))) {
+    const statRes = await stat(pathDir)
+    if (statRes.isFile()) {
+      return [path.resolve(pathDir)]
     } else {
-      const readDirResult = await fs.promises.readdir(pathDir);
+      const readDirResult = await readdir(pathDir)
       if (recursive) {
-        let result: string[] = [];
+        let result: string[] = []
         for (const item of readDirResult) {
           result = _.concat(
             result,
@@ -604,28 +599,28 @@ export async function parseDir(
               recursive,
               logLevel,
               ignore,
-            }),
-          );
+            })
+          )
         }
-        return result;
+        return result
       } else {
-        return readDirResult;
+        return readDirResult
       }
     }
   } else {
-    return [];
+    return []
   }
 }
 
 export async function isFileExist(filePath: string): Promise<boolean> {
   if (!path.isAbsolute(filePath)) {
-    throw Error(`${filePath} is not a absolute path!`);
+    throw Error(`${filePath} is not a absolute path!`)
   }
   try {
-    await fs.promises.access(filePath, constants.R_OK);
-    return true;
+    await access(filePath, constants.R_OK)
+    return true
   } catch (error) {
-    return false;
+    return false
   }
 }
 
@@ -636,13 +631,13 @@ export async function isFileExist(filePath: string): Promise<boolean> {
  */
 export async function prune(filePath: string): Promise<boolean> {
   if (!path.isAbsolute(filePath)) {
-    throw Error(`${filePath} is not a absolute path!`);
+    throw Error(`${filePath} is not a absolute path!`)
   }
   try {
-    await fs.promises.rm(filePath, { recursive: true });
-    return true;
+    await rm(filePath, { recursive: true })
+    return true
   } catch (error) {
-    return false;
+    return false
   }
 }
 
@@ -655,91 +650,67 @@ export async function prune(filePath: string): Promise<boolean> {
  * @returns 相对项目根目录的路径
  */
 export function absolute2Relative(root: string, filePath: string): string {
-  return path.relative(
-    path.resolve(root, "src/"),
-    path.normalize(`src/${filePath}`),
-  );
+  return path.relative(path.resolve(root, 'src/'), path.normalize(`src/${filePath}`))
 }
 
 export function cmdCli(): string {
-  let cliCMD = isWindows ? "cli.bat" : "cli";
-  if (
-    process.env.WETOOLS_HOME &&
-    typeof process.env.WETOOLS_HOME === "string"
-  ) {
+  let cliCMD = isWindows ? 'cli.bat' : 'cli'
+  if (process.env.WETOOLS_HOME && typeof process.env.WETOOLS_HOME === 'string') {
     if (isWindows) {
-      cliCMD = `call "${path.join(process.env.WETOOLS_HOME, "cli.bat")}"`;
+      cliCMD = `call "${path.join(process.env.WETOOLS_HOME, 'cli.bat')}"`
     } else {
-      cliCMD = path.join(process.env.WETOOLS_HOME, "cli");
+      cliCMD = path.join(process.env.WETOOLS_HOME, 'cli')
     }
   }
-  return cliCMD;
+  return cliCMD
 }
 
 export function cmdCliFaid(err: Error | null): boolean {
-  if (
-    err &&
-    /(command not found)|(is not recognized as an internal or external command)/.test(
-      err.message,
-    )
-  ) {
+  if (err && /(command not found)|(is not recognized as an internal or external command)/.test(err.message)) {
     createLogger().info(
       chalk.bgRed(
         `未能检测到微信开发者命令行工具，请设置环境变量WETOOLS_HOME，指向开发者工具安装目录${
           isWindows
-            ? "(例如：C:\\Program Files (x86)\\Tencent\\微信web开发者工具)"
-            : "(例如：/Applications/wechatwebdevtools.app/Contents/MacOS)"
-        }`,
-      ),
-    );
-    return true;
+            ? '(例如：C:\\Program Files (x86)\\Tencent\\微信web开发者工具)'
+            : '(例如：/Applications/wechatwebdevtools.app/Contents/MacOS)'
+        }`
+      )
+    )
+    return true
   } else {
-    return false;
+    return false
   }
 }
 
-export async function traceOutUnuse(
-  context: Context,
-  wholeTask: Record<string, Task>,
-): Promise<void> {
-  const logger = createLogger(context.config.logLevel);
+export async function traceOutUnuse(context: Context, wholeTask: Record<string, Task>): Promise<void> {
+  const logger = createLogger(context.config.logLevel)
   /**
    * 项目下需要监听的所有文件
    */
   const needWatches = [
-    "src/",
-    "project.config.json",
+    'src/',
+    'project.config.json',
     // TODO: tailwind和svg目录后续处理
     // "tailwind.config.js",
     // "tailwind/",
     // "svg/",
-  ];
+  ]
 
-  const ignoreFiles: RegExp = /\.DS_Store/;
+  const ignoreFiles: RegExp = /\.DS_Store/
 
   /**
    * 解析结果
    */
-  let parseResult: string[] = [];
-  for (const item of _.map(needWatches, (item) =>
-    path.resolve(context.config.root, item),
-  )) {
-    parseResult = _.concat(
-      parseResult,
-      await parseDir(item, { recursive: true }),
-    );
+  let parseResult: string[] = []
+  for (const item of _.map(needWatches, item => path.resolve(context.config.root, item))) {
+    parseResult = _.concat(parseResult, await parseDir(item, { recursive: true }))
   }
   // 过滤掉我们并不想跟踪的文件
-  parseResult = _.filter(parseResult, (item) => !ignoreFiles.test(item));
-  parseResult = _.map(parseResult, (item) =>
-    path.relative(context.config.root, item),
-  );
+  parseResult = _.filter(parseResult, item => !ignoreFiles.test(item))
+  parseResult = _.map(parseResult, item => path.relative(context.config.root, item))
 
   // logger.info(chalk.blueBright(`allFiles: ${parseResult.length}`));
-  const unTrackedFiles = _.pull(
-    parseResult,
-    ..._.map(wholeTask, (task) => task.relativeToRootPath),
-  );
+  const unTrackedFiles = _.pull(parseResult, ..._.map(wholeTask, task => task.relativeToRootPath))
 
   // const trackedFiles = taskManager.files();
   // logger.info(
@@ -749,11 +720,11 @@ export async function traceOutUnuse(
   if (unTrackedFiles.length) {
     logger.info(
       chalk.yellow(
-        `\n发现以下${unTrackedFiles.length}个文件存在于项目中，但是并未被引用。请检查依赖关系是否正确，在依赖关系被解决前TiBox不会对这些文件做处理`,
-      ),
-    );
+        `\n发现以下${unTrackedFiles.length}个文件存在于项目中，但是并未被引用。请检查依赖关系是否正确，在依赖关系被解决前TiBox不会对这些文件做处理`
+      )
+    )
     _.forEach(unTrackedFiles, (item, index) => {
-      logger.info(chalk.yellow(`  ${index + 1}. ${item}`));
-    });
+      logger.info(chalk.yellow(`  ${index + 1}. ${item}`))
+    })
   }
 }

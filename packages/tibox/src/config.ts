@@ -1,45 +1,41 @@
-import path from "path";
-import fs from "fs";
-import {
-  BuildOptions,
-  resolveBuildOptions,
-  ResolvedBuildOptions,
-} from "./build";
-import { build } from "esbuild";
-import dotenv from "dotenv";
-import { expand } from "dotenv-expand";
+import path from 'path'
+import fs from 'fs'
+import { BuildOptions, resolveBuildOptions, ResolvedBuildOptions } from './build'
+import { build } from 'esbuild'
+import dotenv from 'dotenv'
+import { expand } from 'dotenv-expand'
 import {
   // createDebugger,
   // isExternalUrl,
   isObject,
   lookupFile,
   normalizePath,
-} from "./utils";
-import { AliasOptions, Alias } from "../types/alias";
-import { DevOptions } from "./dev";
-import { resolveUploadOptions, UploadOptions } from "./upload";
-import { parseDestFolderName, parseProjectName } from "./libs/tools";
-import loadJsonFile from "load-json-file";
-import { LogLevel } from "./logger";
-import _ from "lodash";
-import git from "git-rev-sync";
+} from './utils'
+import { AliasOptions, Alias } from '../types/alias'
+import { DevOptions } from './dev'
+import { resolveUploadOptions, UploadOptions } from './upload'
+import { parseDestFolderName, parseProjectName } from './libs/tools'
+import loadJsonFile from 'load-json-file'
+import { LogLevel } from './logger'
+import _ from 'lodash'
+import git from 'git-rev-sync'
 
 // import { CLIENT_DIR, DEFAULT_ASSETS_RE } from './constants'
 export interface ConfigEnv {
-  command: "build" | "dev" | "upload";
-  product: string;
-  mode: string;
+  command: 'build' | 'dev' | 'upload'
+  product: string
+  mode: string
 }
 
-export type UserConfigFn = (env: ConfigEnv) => UserConfig | Promise<UserConfig>;
-export type UserConfigExport = UserConfig | Promise<UserConfig> | UserConfigFn;
+export type UserConfigFn = (env: ConfigEnv) => UserConfig | Promise<UserConfig>
+export type UserConfigExport = UserConfig | Promise<UserConfig> | UserConfigFn
 
 /**
  * 插件
  */
 export interface Plugin {
-  name: string;
-  transform: (code: string) => string | Promise<string>;
+  name: string
+  transform: (code: string) => string | Promise<string>
 }
 
 export interface UserConfig {
@@ -48,212 +44,198 @@ export interface UserConfig {
    * the location of the config file itself.
    * @default process.cwd()
    */
-  root?: string;
-  project?: string;
-  product?: string;
-  mode?: string;
+  root?: string
+  project?: string
+  product?: string
+  mode?: string
   // sourceDir?: string;
   // destDir?: string;
-  appid?: string;
-  projectName?: (project: string, product: string, mode: string) => string;
-  ext?: Record<string, any>;
+  appid?: string
+  projectName?: (project: string, product: string, mode: string) => string
+  ext?: Record<string, any>
   /**
    * Server specific options, e.g. host, port, https...
    */
-  dev?: DevOptions;
+  dev?: DevOptions
 
   /**
    * Build specific options
    */
-  build?: BuildOptions;
+  build?: BuildOptions
 
   /**
    * upload specific options
    */
-  upload?: UploadOptions;
+  upload?: UploadOptions
 
   /**
    * Environment files directory. Can be an absolute path, or a path relative from
    * the location of the config file itself.
    * @default root
    */
-  envDir?: string;
+  envDir?: string
 
   /**
    * Log level.
    * Default: 'info'
    */
-  logLevel?: LogLevel;
+  logLevel?: LogLevel
 
-  plugins?: Plugin[];
+  plugins?: Plugin[]
 }
 
 export interface InlineConfig extends UserConfig {
-  configFile?: string | false;
-  envFile?: false;
+  configFile?: string | false
+  envFile?: false
 }
 
 export type handleDistResult = {
-  fileContent: Uint8Array | null;
-  dist: string;
-};
+  fileContent: Uint8Array | null
+  dist: string
+}
 
 export type gulpHandletype = {
-  regExp: RegExp;
-  fn: (
-    srcPath: string,
-    distRootPath: string,
-    opts?: Record<string, unknown>,
-  ) => handleDistResult[] | handleDistResult;
-};
+  regExp: RegExp
+  fn: (srcPath: string, distRootPath: string, opts?: Record<string, unknown>) => handleDistResult[] | handleDistResult
+}
 
 /**
  * 解析完成后的配置
  */
 export type ResolvedConfig = Readonly<
-  Omit<
-    UserConfig,
-    "plugins" | "alias" | "dedupe" | "assetsInclude" | "optimizeDeps"
-  > & {
-    configFile: string | undefined;
+  Omit<UserConfig, 'plugins' | 'alias' | 'dedupe' | 'assetsInclude' | 'optimizeDeps'> & {
+    configFile: string | undefined
     // configFileDependencies: string[];
-    inlineConfig: InlineConfig;
-    root: string;
+    inlineConfig: InlineConfig
+    root: string
     // base: string;
     // publicDir: string
-    command: "build" | "dev" | "upload";
-    dependencies: Record<string, string>;
-    isDependencies: (name: string) => boolean;
-    project: string;
-    product: string;
-    appid: string;
-    version: string;
-    commitId: string;
+    command: 'build' | 'dev' | 'upload'
+    dependencies: Record<string, string>
+    isDependencies: (name: string) => boolean
+    project: string
+    product: string
+    appid: string
+    version: string
+    commitId: string
     /**
      * 最终的项目名称
      */
-    determinedProjectName: string;
+    determinedProjectName: string
     /**
      * 最终的dispatch目录
      */
-    determinedDestDir: string;
+    determinedDestDir: string
     /**
      * development、staging、production或其他的
      */
-    mode: string;
-    isProduction: boolean;
-    env: Record<string, any>;
+    mode: string
+    isProduction: boolean
+    env: Record<string, any>
     // resolve: ResolveOptions & {
     //   alias: Alias[]
     // }
-    plugins: readonly Plugin[];
+    plugins: readonly Plugin[]
     // dev: ResolvedDevOptions;
-    build: ResolvedBuildOptions;
-    replacer?: (key: string) => string;
+    build: ResolvedBuildOptions
+    replacer?: (key: string) => string
     // assetsInclude: (file: string) => boolean
     // logger: Logger
     // createResolver: (options?: Partial<InternalResolveOptions>) => ResolveFn
     // optimizeDeps: Omit<DepOptimizationOptions, 'keepNames'>
   }
->;
+>
 
 type PackageJson = {
-  version: string;
-  dependencies: Record<string, string>;
-};
+  version: string
+  dependencies: Record<string, string>
+}
 
 export async function resolveConfig(
   inlineConfig: InlineConfig,
-  command: "build" | "dev" | "upload",
-  defaultProduct = "default",
-  defaultMode = "development",
+  command: 'build' | 'dev' | 'upload',
+  defaultProduct = 'default',
+  defaultMode = 'development'
 ): Promise<ResolvedConfig> {
-  let config = inlineConfig;
+  let config = inlineConfig
   // let configFileDependencies: string[] = [];
-  const product = inlineConfig.product || defaultProduct;
-  let mode = inlineConfig.mode || defaultMode;
+  const product = inlineConfig.product || defaultProduct
+  let mode = inlineConfig.mode || defaultMode
 
   // some dependencies e.g. @vue/compiler-* relies on NODE_ENV for getting
   // production-specific behavior, so set it here even though we haven't
   // resolve the final mode yet
-  if (mode === "production") {
-    process.env.NODE_ENV = "production";
+  if (mode === 'production') {
+    process.env.NODE_ENV = 'production'
   }
 
   const configEnv = {
     product,
     mode,
     command,
-  };
+  }
 
-  let { configFile } = config;
+  let { configFile } = config
   if (configFile !== false) {
     try {
       const loadResult = await loadConfigFromFile(
         configEnv,
         configFile,
-        config.root,
+        config.root
         // config.logLevel
-      );
+      )
       if (loadResult) {
-        config = mergeConfig(loadResult.config, config);
-        configFile = loadResult.path;
+        config = mergeConfig(loadResult.config, config)
+        configFile = loadResult.path
         // configFileDependencies = loadResult.dependencies;
       }
     } catch (error: any) {
       if (/Cannot find module/.test(error.message)) {
-        throw new Error("Config file can't be found!");
+        throw new Error("Config file can't be found!")
       }
     }
   }
 
   // user config may provide an alternative mode
-  mode = config.mode || mode;
+  mode = config.mode || mode
 
   // resolve root
-  const resolvedRoot = normalizePath(
-    config.root ? path.resolve(config.root) : process.cwd(),
-  );
+  const resolvedRoot = normalizePath(config.root ? path.resolve(config.root) : process.cwd())
 
   // load .env files
-  const envDir = config.envDir
-    ? normalizePath(path.resolve(resolvedRoot, config.envDir))
-    : resolvedRoot;
-  const userEnv =
-    inlineConfig.envFile !== false && loadEnv(product, mode, envDir);
+  const envDir = config.envDir ? normalizePath(path.resolve(resolvedRoot, config.envDir)) : resolvedRoot
+  const userEnv = inlineConfig.envFile !== false && loadEnv(product, mode, envDir)
 
   // Note it is possible for user to have a custom mode, e.g. `staging` where
   // production-like behavior is expected. This is indicated by NODE_ENV=production
   // loaded from `.staging.env` and set by us as VITE_USER_NODE_ENV
-  const isProduction =
-    (process.env.VITE_USER_NODE_ENV || mode) === "production";
+  const isProduction = (process.env.VITE_USER_NODE_ENV || mode) === 'production'
   if (isProduction) {
     // in case default mode was not production and is overwritten
-    process.env.NODE_ENV = "production";
+    process.env.NODE_ENV = 'production'
   }
 
-  const resolvedBuildOptions = resolveBuildOptions(config.build);
+  const resolvedBuildOptions = resolveBuildOptions(config.build)
 
-  const finalParseProjectName: UserConfig["projectName"] =
-    config.projectName || parseProjectName;
+  const finalParseProjectName: UserConfig['projectName'] = config.projectName || parseProjectName
 
   // 格式通常为 agility-default-development
   const determinedProjectName = finalParseProjectName(
-    config.project || "project",
+    config.project || 'project',
     config.product || defaultProduct,
-    config.mode || defaultMode,
-  );
+    config.mode || defaultMode
+  )
 
   // 格式通常为 dist-agility-default-development
   const determinedDestDir: string = parseDestFolderName(
-    config.project || "project",
+    config.project || 'project',
     config.product || defaultProduct,
-    config.mode || defaultMode,
-  );
+    config.mode || defaultMode
+  )
 
-  const packageJson = (await loadJsonFile("./package.json")) as PackageJson;
+  const packageJson = (await loadJsonFile('./package.json')) as PackageJson
 
-  const resolvedUploadOptions = resolveUploadOptions(config.upload);
+  const resolvedUploadOptions = resolveUploadOptions(config.upload)
 
   const resolved: ResolvedConfig = {
     ...config,
@@ -270,21 +252,18 @@ export async function resolveConfig(
      * 小程序项目中的依赖
      */
     dependencies: packageJson.dependencies,
-    isDependencies: (name) => {
+    isDependencies: name => {
       return (
         /^weui-miniprogram/.test(name) ||
-        _.some(
-          packageJson.dependencies,
-          (item, key) => key === name.replace(/\\/, "/"),
-        )
-      );
+        _.some(packageJson.dependencies, (item, key) => key === name.replace(/\\/, '/'))
+      )
     },
-    project: config.project || "newProject",
-    product: config.product || "default",
+    project: config.project || 'newProject',
+    product: config.product || 'default',
     mode,
     version: packageJson.version,
     commitId: git.short(),
-    appid: config.appid || "",
+    appid: config.appid || '',
     determinedProjectName,
     determinedDestDir,
     isProduction,
@@ -312,17 +291,17 @@ export async function resolveConfig(
     //     ...config.optimizeDeps?.esbuildOptions,
     //   },
     // },
-    replacer: (key) => {
+    replacer: key => {
       // TODO: 暂时先放这，不知道应该放哪
       const replaceStr: Record<string, string> = {
-        PRODUCT_NAME: config.product || "default",
-        IS_RELEASE: (mode === "production").toString(),
+        PRODUCT_NAME: config.product || 'default',
+        IS_RELEASE: (mode === 'production').toString(),
         VERSION: packageJson.version,
-      };
-      console.log(`replacer: ${key}: ${replaceStr[key]}`);
-      return replaceStr[key];
+      }
+      console.log(`replacer: ${key}: ${replaceStr[key]}`)
+      return replaceStr[key]
     },
-  };
+  }
 
   // (resolved.plugins as Plugin[]) = await resolvePlugins(
   //   resolved,
@@ -422,86 +401,70 @@ export async function resolveConfig(
   //   },
   // });
 
-  return resolved;
+  return resolved
 }
 
-function mergeConfigRecursively(
-  a: Record<string, any>,
-  b: Record<string, any>,
-  rootPath: string,
-) {
-  const merged: Record<string, any> = { ...a };
+function mergeConfigRecursively(a: Record<string, any>, b: Record<string, any>, rootPath: string) {
+  const merged: Record<string, any> = { ...a }
   for (const key in b) {
-    const value = b[key];
+    const value = b[key]
     if (value == null) {
-      continue;
+      continue
     }
 
-    const existing = merged[key];
+    const existing = merged[key]
     if (Array.isArray(existing) && Array.isArray(value)) {
-      merged[key] = [...existing, ...value];
-      continue;
+      merged[key] = [...existing, ...value]
+      continue
     }
     if (isObject(existing) && isObject(value)) {
-      merged[key] = mergeConfigRecursively(
-        existing,
-        value,
-        rootPath ? `${rootPath}.${key}` : key,
-      );
-      continue;
+      merged[key] = mergeConfigRecursively(existing, value, rootPath ? `${rootPath}.${key}` : key)
+      continue
     }
 
     // fields that require special handling
     if (existing != null) {
-      if (key === "alias" && (rootPath === "resolve" || rootPath === "")) {
-        merged[key] = mergeAlias(existing, value);
-        continue;
-      } else if (key === "assetsInclude" && rootPath === "") {
-        merged[key] = [].concat(existing, value);
-        continue;
+      if (key === 'alias' && (rootPath === 'resolve' || rootPath === '')) {
+        merged[key] = mergeAlias(existing, value)
+        continue
+      } else if (key === 'assetsInclude' && rootPath === '') {
+        merged[key] = [].concat(existing, value)
+        continue
       }
     }
 
-    merged[key] = value;
+    merged[key] = value
   }
-  return merged;
+  return merged
 }
 
-export function mergeConfig(
-  a: Record<string, any>,
-  b: Record<string, any>,
-  isRoot = true,
-): Record<string, any> {
-  return mergeConfigRecursively(a, b, isRoot ? "" : ".");
+export function mergeConfig(a: Record<string, any>, b: Record<string, any>, isRoot = true): Record<string, any> {
+  return mergeConfigRecursively(a, b, isRoot ? '' : '.')
 }
 
 function mergeAlias(a: AliasOptions = [], b: AliasOptions = []): Alias[] {
-  return [...normalizeAlias(a), ...normalizeAlias(b)];
+  return [...normalizeAlias(a), ...normalizeAlias(b)]
 }
 
 function normalizeAlias(o: AliasOptions): Alias[] {
   return Array.isArray(o)
     ? o.map(normalizeSingleAlias)
-    : Object.keys(o).map((find) =>
+    : Object.keys(o).map(find =>
         normalizeSingleAlias({
           find,
           replacement: (o as any)[find],
-        }),
-      );
+        })
+      )
 }
 
 // https://github.com/vitejs/vite/issues/1363
 // work around https://github.com/rollup/plugins/issues/759
 function normalizeSingleAlias({ find, replacement }: Alias): Alias {
-  if (
-    typeof find === "string" &&
-    find.endsWith("/") &&
-    replacement.endsWith("/")
-  ) {
-    find = find.slice(0, find.length - 1);
-    replacement = replacement.slice(0, replacement.length - 1);
+  if (typeof find === 'string' && find.endsWith('/') && replacement.endsWith('/')) {
+    find = find.slice(0, find.length - 1)
+    replacement = replacement.slice(0, replacement.length - 1)
   }
-  return { find, replacement };
+  return { find, replacement }
 }
 
 // export function sortUserPlugins(
@@ -525,44 +488,44 @@ function normalizeSingleAlias({ find, replacement }: Alias): Alias {
 export async function loadConfigFromFile(
   configEnv: ConfigEnv,
   configFile?: string,
-  configRoot: string = process.cwd(),
+  configRoot: string = process.cwd()
   // logLevel?: LogLevel
 ): Promise<{
-  path: string;
-  config: UserConfig;
-  dependencies: string[];
+  path: string
+  config: UserConfig
+  dependencies: string[]
 } | null> {
   // const start = Date.now();
 
-  let resolvedPath: string | undefined;
-  let dependencies: string[] = [];
+  let resolvedPath: string | undefined
+  let dependencies: string[] = []
 
   if (configFile) {
     // explicit config path is always resolved from cwd
-    resolvedPath = path.resolve(configFile);
+    resolvedPath = path.resolve(configFile)
   } else {
     // implicit config file loaded from inline root (if present)
     // otherwise from cwd
-    const jsconfigFile = path.resolve(configRoot, "tibox.config.js");
+    const jsconfigFile = path.resolve(configRoot, 'tibox.config.js')
     if (fs.existsSync(jsconfigFile)) {
-      resolvedPath = jsconfigFile;
+      resolvedPath = jsconfigFile
     }
   }
 
   if (!resolvedPath) {
     // debug("no config file found.");
-    return null;
+    return null
   }
 
   try {
-    let userConfig: UserConfigExport | undefined;
+    let userConfig: UserConfigExport | undefined
 
     if (!userConfig) {
       // 1. try to directly require the module (assuming commonjs)
       try {
         // clear cache in case of server restart
-        delete require.cache[require.resolve(resolvedPath)];
-        userConfig = require(resolvedPath);
+        delete require.cache[require.resolve(resolvedPath)]
+        userConfig = require(resolvedPath)
         // debug(`cjs config loaded in ${Date.now() - start}ms`);
       } catch (e: any) {
         const ignored = new RegExp(
@@ -573,10 +536,10 @@ export async function loadConfigFromFile(
             // so it throws normal syntax errors when encountering esm syntax
             `Unexpected token`,
             `Unexpected identifier`,
-          ].join("|"),
-        );
+          ].join('|')
+        )
         if (!ignored.test(e.message)) {
-          throw e;
+          throw e
         }
       }
     }
@@ -586,15 +549,13 @@ export async function loadConfigFromFile(
       // the user has type: "module" in their package.json (#917)
       // transpile es import syntax to require syntax using rollup.
       // lazy require rollup (it's actually in dependencies)
-      const bundled = await bundleConfigFile(resolvedPath);
-      dependencies = bundled.dependencies;
-      userConfig = await loadConfigFromBundledFile(resolvedPath, bundled.code);
+      const bundled = await bundleConfigFile(resolvedPath)
+      dependencies = bundled.dependencies
+      userConfig = await loadConfigFromBundledFile(resolvedPath, bundled.code)
       // debug(`bundled config file loaded in ${Date.now() - start}ms`);
     }
 
-    const config = await (typeof userConfig === "function"
-      ? userConfig(configEnv)
-      : userConfig);
+    const config = await (typeof userConfig === 'function' ? userConfig(configEnv) : userConfig)
     // if (!isObject(config)) {
     //   throw new Error(`config must export or return an object.`);
     // }
@@ -602,15 +563,15 @@ export async function loadConfigFromFile(
       path: normalizePath(resolvedPath),
       config,
       dependencies,
-    };
+    }
   } catch (e) {
     // createLogger(logLevel).error(
     //   chalk.red(`failed to load config from ${resolvedPath}`)
     // );
 
     // TODO: 下面这行我自己添加的
-    console.error(e);
-    throw e;
+    console.error(e)
+    throw e
   }
 }
 
@@ -620,32 +581,29 @@ export async function loadConfigFromFile(
  * @param mjs
  * @returns
  */
-async function bundleConfigFile(
-  fileName: string,
-  mjs = false,
-): Promise<{ code: string; dependencies: string[] }> {
+async function bundleConfigFile(fileName: string, mjs = false): Promise<{ code: string; dependencies: string[] }> {
   const result = await build({
     absWorkingDir: process.cwd(),
     entryPoints: [fileName],
-    outfile: "out.js",
+    outfile: 'out.js',
     write: false,
-    platform: "node",
+    platform: 'node',
     bundle: true,
-    format: mjs ? "esm" : "cjs",
-    sourcemap: "inline",
+    format: mjs ? 'esm' : 'cjs',
+    sourcemap: 'inline',
     metafile: true,
     plugins: [
       {
-        name: "externalize-deps",
+        name: 'externalize-deps',
         setup(build) {
-          build.onResolve({ filter: /.*/ }, (args) => {
-            const id = args.path;
-            if (id[0] !== "." && !path.isAbsolute(id)) {
+          build.onResolve({ filter: /.*/ }, args => {
+            const id = args.path
+            if (id[0] !== '.' && !path.isAbsolute(id)) {
               return {
                 external: true,
-              };
+              }
             }
-          });
+          })
         },
       },
       //   {
@@ -670,53 +628,44 @@ async function bundleConfigFile(
       //     },
       //   },
     ],
-  });
-  const { text } = result.outputFiles[0];
+  })
+  const { text } = result.outputFiles[0]
   return {
     code: text,
     dependencies: result.metafile ? Object.keys(result.metafile.inputs) : [],
-  };
+  }
 }
 
 interface NodeModuleWithCompile extends NodeModule {
-  _compile(code: string, filename: string): any;
+  _compile(code: string, filename: string): any
 }
 
-async function loadConfigFromBundledFile(
-  fileName: string,
-  bundledCode: string,
-): Promise<UserConfig> {
-  const extension = path.extname(fileName);
-  const defaultLoader = require.extensions[extension]!;
+async function loadConfigFromBundledFile(fileName: string, bundledCode: string): Promise<UserConfig> {
+  const extension = path.extname(fileName)
+  const defaultLoader = require.extensions[extension]!
   require.extensions[extension] = (module: NodeModule, filename: string) => {
     if (filename === fileName) {
-      (module as NodeModuleWithCompile)._compile(bundledCode, filename);
+      ;(module as NodeModuleWithCompile)._compile(bundledCode, filename)
     } else {
-      defaultLoader(module, filename);
+      defaultLoader(module, filename)
     }
-  };
+  }
   // clear cache in case of server restart
-  delete require.cache[require.resolve(fileName)];
-  const raw = require(fileName);
-  const config = raw.__esModule ? raw.default : raw;
-  require.extensions[extension] = defaultLoader;
-  return config;
+  delete require.cache[require.resolve(fileName)]
+  const raw = require(fileName)
+  const config = raw.__esModule ? raw.default : raw
+  require.extensions[extension] = defaultLoader
+  return config
 }
 
-export function loadEnv(
-  product: string,
-  mode: string,
-  envDir: string,
-  prefix = "TIBOX_",
-): Record<string, string> {
-  if (mode === "local") {
+export function loadEnv(product: string, mode: string, envDir: string, prefix = 'TIBOX_'): Record<string, string> {
+  if (mode === 'local') {
     throw new Error(
-      `"local" cannot be used as a mode name because it conflicts with ` +
-        `the .local postfix for .env files.`,
-    );
+      `"local" cannot be used as a mode name because it conflicts with ` + `the .local postfix for .env files.`
+    )
   }
 
-  const env: Record<string, string> = {};
+  const env: Record<string, string> = {}
   const envFiles = [
     /** with product and mode local file */ `.env.${product}.${mode}.local`,
     /** with product and mode file */ `.env.${product}.${mode}`,
@@ -724,39 +673,39 @@ export function loadEnv(
     /** product file */ `.env.${product}`,
     /** local file */ `.env.local`,
     /** default file */ `.env`,
-  ];
+  ]
 
   // check if there are actual env variables starting with TIBOX_*
   // these are typically provided inline and should be prioritized
   for (const key in process.env) {
     if (key.startsWith(prefix) && env[key] === undefined) {
-      env[key] = process.env[key] as string;
+      env[key] = process.env[key] as string
     }
   }
 
   for (const file of envFiles) {
-    const path = lookupFile(envDir, [file], true);
+    const path = lookupFile(envDir, [file], true)
     if (path) {
-      const parsed = dotenv.parse(fs.readFileSync(path));
+      const parsed = dotenv.parse(fs.readFileSync(path))
 
       // let environment variables use each other
       expand({
         parsed,
         // prevent process.env mutation
         ignoreProcessEnv: true,
-      } as any);
+      } as any)
 
       // only keys that start with prefix are exposed to client
       for (const [key, value] of Object.entries(parsed)) {
         if (key.startsWith(prefix) && env[key] === undefined) {
-          env[key] = value;
-        } else if (key === "NODE_ENV") {
+          env[key] = value
+        } else if (key === 'NODE_ENV') {
           // NODE_ENV override in .env file
-          process.env.VITE_USER_NODE_ENV = value;
+          process.env.VITE_USER_NODE_ENV = value
         }
       }
     }
   }
 
-  return env;
+  return env
 }

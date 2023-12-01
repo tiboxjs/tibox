@@ -1,19 +1,15 @@
-const records: Record<string, number> = {};
+const records: Record<string, number> = {}
 
-export function isNeedHandle(
-  ppath: string,
-  time: number,
-  isAdd: boolean = true,
-): boolean {
-  const recordTime = records[ppath] || 0;
-  let result;
+export function isNeedHandle(ppath: string, time: number, isAdd: boolean = true): boolean {
+  const recordTime = records[ppath] || 0
+  let result
   if (recordTime < time || recordTime <= 0) {
-    result = true;
+    result = true
     if (isAdd) {
-      records[ppath] = time;
+      records[ppath] = time
     }
   } else {
-    result = false;
+    result = false
   }
-  return result;
+  return result
 }

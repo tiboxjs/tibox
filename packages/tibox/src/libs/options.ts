@@ -1,7 +1,7 @@
-import { Plugin, ResolvedConfig } from "../config";
+import { Plugin, ResolvedConfig } from '../config'
 
 export interface TaskOptions {
-  destDir: string;
-  resolvedConfig: ResolvedConfig;
-  plugins: Plugin[];
+  destDir: string
+  resolvedConfig: ResolvedConfig
+  plugins: Plugin[]
 }

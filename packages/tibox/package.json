@@ -6,9 +6,13 @@
   "types": "dist/index.d.ts",
   "author": "张博 <zbjumper@gmail.com>",
   "license": "MIT",
+  "bin": {
+    "tibox": "./bin/tibox.js"
+  },
+  "packageManager": "pnpm@8.11.0",
   "scripts": {
     "build:comment": "构建",
-    "build": "pnpm run eslint && pnpm run prettier && rm -rf dist && tsc --build",
+    "build": "pnpm run eslint && pnpm run prettier && rm -rf dist && rollup --config rollup.config.ts --configPlugin typescript --resolveJsonModule --format cjs",
     "dev:comment": "启动开发环境",
     "dev": "ts-node-dev --inspect-brk --respawn --transpile-only src/index.ts",
     "eslint:comment": "使用 ESLint 检查并自动修复 src 目录下所有扩展名为 .ts 的文件",
@@ -19,24 +23,18 @@
     "commit": "cz",
     "pub": "pnpm build && pnpm publish --access=public --registry=https://registry.npmjs.com"
   },
-  "bin": {
-    "tibox": "./bin/tibox.js"
-  },
   "engines": {
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@nodelib/fs.scandir": "^3.0.0",
     "cac": "^6.7.14",
     "chalk": "^4.1.2",
     "chokidar": "^3.5.3",
     "clear-console": "^1.1.0",
-    "debug": "^4.3.4",
     "dotenv": "^16.3.1",
     "dotenv-expand": "^10.0.0",
     "esbuild": "^0.19.8",
     "figlet": "^1.7.0",
-    "fs-extra": "^11.1.1",
     "git-rev-sync": "^3.0.2",
     "load-json-file": "^6.2.0",
     "lodash": "^4.17.21",
@@ -49,15 +47,18 @@
   "devDependencies": {
     "@commitlint/cli": "^18.4.3",
     "@commitlint/config-conventional": "^18.4.3",
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-json": "^6.0.1",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.5",
     "@types/debug": "^4.1.12",
-    "@types/fs-extra": "^11.0.4",
+    "@types/figlet": "^1.5.8",
     "@types/git-rev-sync": "^2.0.2",
     "@types/lodash": "^4.14.202",
     "@types/node": "^20.10.0",
     "@types/npm": "^7.19.3",
-    "@types/through2": "^2.0.41",
-    "@types/figlet": "^1.5.8",
     "@types/throttle-debounce": "^5.0.2",
+    "@types/through2": "^2.0.41",
     "@typescript-eslint/eslint-plugin": "^6.12.0",
     "@typescript-eslint/parser": "^6.0.0",
     "cz-conventional-changelog": "^3.3.0",
@@ -65,7 +66,10 @@
     "eslint-define-config": "^2.0.0",
     "eslint-plugin-node": "^11.1.0",
     "prettier": "^3.1.0",
+    "rimraf": "^5.0.5",
+    "rollup": "^4.6.1",
     "ts-node-dev": "^2.0.0",
+    "tslib": "^2.6.2",
     "typescript": "5.2.2"
   },
   "config": {

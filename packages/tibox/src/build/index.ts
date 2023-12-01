@@ -1,11 +1,12 @@
-import path from "path";
-import { InlineConfig, resolveConfig } from "../config";
-import { parse } from "../parse";
+import path from 'path'
+import { InlineConfig, resolveConfig } from '../config'
+import { parse } from '../parse'
 // import { TaskOptions } from "../libs/options";
-import _ from "lodash";
-import fs from "fs-extra";
-import os from "os";
-import ora from "ora";
+import _ from 'lodash'
+import { createWriteStream } from 'fs'
+import { ensureDir } from '../utils'
+import os from 'os'
+import ora from 'ora'
 export interface BuildOptions {
   // /**
   //  * Base public path when served in production.
@@ -165,12 +166,10 @@ export interface BuildOutput {}
  * Bundles the app for production.
  * Returns a Promise containing the build result.
  */
-export async function build(
-  inlineConfig: InlineConfig = {},
-): Promise<BuildOutput> {
+export async function build(inlineConfig: InlineConfig = {}): Promise<BuildOutput> {
   // parallelCallCounts++;
   try {
-    return await doBuild(inlineConfig);
+    return await doBuild(inlineConfig)
   } finally {
     // parallelCallCounts--;
     // if (parallelCallCounts <= 0) {
@@ -181,30 +180,16 @@ export async function build(
 }
 
 async function doBuild(inlineConfig: InlineConfig = {}): Promise<BuildOutput> {
-  const config = await resolveConfig(
-    inlineConfig,
-    "build",
-    "default",
-    "production",
-  );
+  const config = await resolveConfig(inlineConfig, 'build', 'default', 'production')
 
   // TODO: ext.js的处理，还得优化，暂时让小程序跑起来
-  await fs.ensureDir(
-    path.resolve(config.root, config.determinedDestDir, "ext"),
-  );
+  await ensureDir(path.resolve(config.root, config.determinedDestDir, 'ext'))
 
-  const stream = fs.createWriteStream(
-    path.resolve(config.root, `${config.determinedDestDir}/ext/ext.js`),
-    { flags: "w" },
-  );
-  stream.write(
-    Buffer.from(
-      `module.exports = ${JSON.stringify(config.ext || {}, null, 2)}${os.EOL}`,
-    ),
-  );
+  const stream = createWriteStream(path.resolve(config.root, `${config.determinedDestDir}/ext/ext.js`), { flags: 'w' })
+  stream.write(Buffer.from(`module.exports = ${JSON.stringify(config.ext || {}, null, 2)}${os.EOL}`))
 
-  const parseResult = await parse(config);
-  await parseResult.taskManager.handle(ora());
+  const parseResult = await parse(config)
+  await parseResult.taskManager.handle(ora())
 
   // const allValidDestFiles = _.map(parseResult.taskManager.wholeTask, (task) =>
   //   path.join(config.root, task.filePath)
@@ -233,10 +218,10 @@ async function doBuild(inlineConfig: InlineConfig = {}): Promise<BuildOutput> {
   //   );
   // }
 
-  return {};
+  return {}
 }
 
-export type ResolvedBuildOptions = Required<Omit<BuildOptions, "base">>;
+export type ResolvedBuildOptions = Required<Omit<BuildOptions, 'base'>>
 
 export function resolveBuildOptions(raw?: BuildOptions): ResolvedBuildOptions {
   const resolved: ResolvedBuildOptions = {
@@ -271,7 +256,7 @@ export function resolveBuildOptions(raw?: BuildOptions): ResolvedBuildOptions {
     // chunkSizeWarningLimit: 500,
     // watch: null,
     ...raw,
-  };
+  }
 
   // // handle special build targets
   // if (resolved.target === "modules") {
@@ -294,5 +279,5 @@ export function resolveBuildOptions(raw?: BuildOptions): ResolvedBuildOptions {
   //   resolved.minify = false;
   // }
 
-  return resolved;
+  return resolved
 }

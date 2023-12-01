@@ -1,15 +1,15 @@
-import _ from "lodash";
-import path from "path";
+import _ from 'lodash'
+import path from 'path'
 // import path from "path";
-import { ITaskManager } from ".";
-import { ResolvedConfig } from "..";
+import { ITaskManager } from '.'
+import { ResolvedConfig } from '..'
 
 /**
  * 上下文环境
  */
 export type Context = {
-  config: ResolvedConfig;
-};
+  config: ResolvedConfig
+}
 
 /**
  * 任务抽象类
@@ -18,45 +18,42 @@ export abstract class Task {
   /**
    * 上下文
    */
-  context: Context;
+  context: Context
 
-  filePath: string;
+  filePath: string
 
-  tasks: Array<Task>;
+  tasks: Array<Task>
 
   constructor(context: Context, filePath: string) {
-    this.context = context;
-    this.filePath = filePath;
-    this.tasks = [];
+    this.context = context
+    this.filePath = filePath
+    this.tasks = []
   }
 
   get relativeToRootPath(): string {
-    return path.relative(
-      this.context.config.root,
-      path.join("src", this.filePath),
-    );
+    return path.relative(this.context.config.root, path.join('src', this.filePath))
   }
 
   get absolutePath(): string {
-    return path.resolve(this.context.config.root, this.relativeToRootPath);
+    return path.resolve(this.context.config.root, this.relativeToRootPath)
   }
 
-  public abstract id(): string;
+  public abstract id(): string
 
   async dispatchInit(options: ITaskManager): Promise<void> {
-    await this.onInit(options);
+    await this.onInit(options)
   }
 
   async onInit(options: ITaskManager): Promise<void> {
-    _.map(this.tasks, (task) => task.dispatchInit(options));
+    _.map(this.tasks, task => task.dispatchInit(options))
   }
 
   async dispatchHandle(options: ITaskManager): Promise<void> {
-    await this.onHandle(options);
+    await this.onHandle(options)
   }
 
   async onHandle(options: ITaskManager): Promise<void> {
-    _.map(this.tasks, (task) => task.dispatchHandle(options));
+    _.map(this.tasks, task => task.dispatchHandle(options))
   }
 
   // public abstract filePaths(): string[];
