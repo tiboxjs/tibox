@@ -4,6 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "dev": "tibox dev --mode development --product default",
+    "build": "tibox build --mode production --product default",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

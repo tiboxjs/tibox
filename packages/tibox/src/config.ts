@@ -262,7 +262,13 @@ export async function resolveConfig(
     product: config.product || 'default',
     mode,
     version: packageJson.version,
-    commitId: git.short(),
+    commitId: (() => {
+      try {
+        return git.short()
+      } catch (error: any) {
+        return '-'
+      }
+    })(),
     appid: config.appid || '',
     determinedProjectName,
     determinedDestDir,
