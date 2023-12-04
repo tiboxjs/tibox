@@ -11,7 +11,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@tibox/tibox-cli": "^0.0.3",
+    "@tibox/tibox-cli": "^0.0.5",
     "eslint": "^8.54.0",
     "eslint-plugin-import": "^2.29.0"
   }
