@@ -9,7 +9,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@tibox/tibox-cli": "workspace:^",
+    "@tibox/tibox-cli": "^0.0.3",
     "eslint": "^8.54.0",
     "eslint-plugin-import": "^2.29.0"
   }
