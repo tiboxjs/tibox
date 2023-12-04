@@ -7,7 +7,7 @@
   },
   "main": "index.js",
   "scripts": {
-    "pub": "pnpm publish --registry=https://registry.npmjs.com"
+    "pub": "pnpm publish --access=public --registry=https://registry.npmjs.com"
   },
   "keywords": [],
   "license": "MIT",
