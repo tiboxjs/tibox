@@ -232,7 +232,7 @@ export function lookupFile(dir: string, formats: string[], pathOnly = false): st
  * @param path 路径
  */
 export async function ensureDir(path: string): Promise<void> {
-  if (!isFileExist(path)) {
+  if (!(await isFileExist(path))) {
     await mkdir(path, { recursive: true })
   }
 }
