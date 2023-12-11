@@ -8,18 +8,14 @@
     "plugins/*"
   ],
   "scripts": {
-    "debug": "cd packages/tibox && pnpm dev",
-    "docs:dev": "vitepress dev docs",
-    "docs:build": "vitepress build docs",
-    "docs:serve": "vitepress serve docs"
+    "debug": "cd packages/tibox && pnpm dev"
   },
   "devDependencies": {
     "eslint-define-config": "^2.0.0",
-    "eslint-plugin-node": "^11.1.0",
-    "vitepress": "^1.0.0-rc.31"
+    "eslint-plugin-node": "^11.1.0"
   },
   "engines": {
-    "node": ">=12.0.0",
+    "node": ">=18.0.0",
     "pnpm": ">=6.0.0"
   },
   "packageManager": "pnpm@8.11.0",
