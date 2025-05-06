@@ -2,7 +2,7 @@ import { access, stat } from 'node:fs/promises'
 import { createReadStream, createWriteStream } from 'node:fs'
 import path from 'node:path'
 import * as _ from 'lodash-es'
-import chalk from 'chalk'
+import colors from 'picocolors'
 import { absolute2Relative, ensureDir, matchImportWxssFile  } from '../../utils'
 import type { ITaskManager } from '..'
 import { Task } from '../task'
@@ -41,7 +41,7 @@ export class WxssTask extends Task {
         if (!/no such file or directory/.test(error.message)) {
           throw error
         }
-        createLogger().info(chalk.yellow(`${this.absolutePath} 文件不存在，忽略解析`))
+        createLogger().info(colors.yellow(`${this.absolutePath} 文件不存在，忽略解析`))
       }
     }
   }

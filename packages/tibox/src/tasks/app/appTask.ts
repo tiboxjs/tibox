@@ -1,7 +1,6 @@
 import path from 'node:path'
 import * as _ from 'lodash-es'
-// import chalk from "chalk";
-import loadJsonFile from 'load-json-file'
+import { loadJsonFile } from 'load-json-file'
 import type { Context} from '../task';
 import { Task } from '../task'
 import type { ITaskManager } from '..'

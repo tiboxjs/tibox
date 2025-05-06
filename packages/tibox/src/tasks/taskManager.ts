@@ -15,7 +15,6 @@ import { WxmlTask } from './app/wxmlTask'
 import { WxssTask } from './app/wxssTask'
 import { PackageJsonTask } from './app/packageJsonTask'
 // import { createLogger } from "../logger";
-// import chalk from "chalk";
 import { SitemapTask } from './app/sitemapTask'
 import type { ITaskManager } from '.'
 
@@ -31,7 +30,7 @@ export class TaskManager implements ITaskManager {
   }
 
   public async onRegistPageCallback(pagePath: string): Promise<PageTask> {
-    // createLogger().info(chalk.grey(`onRegistPageCallback: ${pagePath}`));
+    // createLogger().info(colors.grey(`onRegistPageCallback: ${pagePath}`));
     if (path.isAbsolute(pagePath)) {
       pagePath = absolute2Relative(this.context.config.root, pagePath)
     }
@@ -50,7 +49,7 @@ export class TaskManager implements ITaskManager {
 
   public async onRegistComponentCallback(componentPath: string): Promise<ComponentTask> {
     // createLogger().info(
-    //   chalk.grey(`onRegistComponentCallback: ${componentPath}`)
+    //   colors.grey(`onRegistComponentCallback: ${componentPath}`)
     // );
     if (path.isAbsolute(componentPath)) {
       componentPath = absolute2Relative(this.context.config.root, componentPath)
@@ -69,7 +68,7 @@ export class TaskManager implements ITaskManager {
   }
 
   public async onRegistJsTaskCallback(jsFilePath: string): Promise<JsTask> {
-    // createLogger().info(chalk.grey(`onRegistJsFileCallback: ${jsFilePath}`));
+    // createLogger().info(colors.grey(`onRegistJsFileCallback: ${jsFilePath}`));
     let jsTask = new JsTask(this.context, jsFilePath)
 
     const findResult = this.wholeTask[jsTask.relativeToRootPath]
@@ -85,7 +84,7 @@ export class TaskManager implements ITaskManager {
 
   public async onRegistJsonTaskCallback(jsonFilePath: string): Promise<JsonTask> {
     // createLogger().info(
-    //   chalk.grey(`onRegistJsonFileCallback: ${jsonFilePath}`)
+    //   colors.grey(`onRegistJsonFileCallback: ${jsonFilePath}`)
     // );
     let jsonTask = new JsonTask(this.context, jsonFilePath)
 
@@ -102,7 +101,7 @@ export class TaskManager implements ITaskManager {
 
   public async onRegistWxmlTaskCallback(wxmlFilePath: string): Promise<WxmlTask> {
     // createLogger().info(
-    //   chalk.grey(`onRegistWxmlFileCallback: ${wxmlFilePath}`)
+    //   colors.grey(`onRegistWxmlFileCallback: ${wxmlFilePath}`)
     // );
     let wxmlTask = new WxmlTask(this.context, wxmlFilePath)
 
@@ -118,7 +117,7 @@ export class TaskManager implements ITaskManager {
   }
 
   public async onRegistWxssTaskCallback(wxssPath: string): Promise<WxssTask> {
-    // createLogger().info(chalk.grey(`onRegistWxssFileCallback: ${wxssPath}`));
+    // createLogger().info(colors.grey(`onRegistWxssFileCallback: ${wxssPath}`));
     let wxssTask = new WxssTask(this.context, wxssPath)
 
     const findResult = this.wholeTask[wxssTask.relativeToRootPath]
@@ -134,7 +133,7 @@ export class TaskManager implements ITaskManager {
 
   public async onRegistImageTaskCallback(imageFilePath: string): Promise<ImageTask> {
     // createLogger().info(
-    //   chalk.grey(`onRegistImageFileCallback: ${imageFilePath}`)
+    //   colors.grey(`onRegistImageFileCallback: ${imageFilePath}`)
     // );
     let imageTask = new ImageTask(this.context, imageFilePath)
 

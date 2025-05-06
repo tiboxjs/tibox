@@ -1,8 +1,8 @@
 import path from 'node:path'
 import { access } from 'node:fs/promises'
 import * as _ from 'lodash-es'
-import loadJsonFile from 'load-json-file'
-import chalk from 'chalk'
+import { loadJsonFile } from 'load-json-file'
+import colors from 'picocolors'
 import type { ITaskManager } from '..'
 import { absolute2Relative } from '../../utils'
 import { Task } from '../task'
@@ -47,7 +47,7 @@ export class PageTask extends Task {
       if (!/no such file or directory/.test(error.message)) {
         throw error
       }
-      createLogger().info(chalk.yellow(`${pageJsonFileAbsolutePath} 文件不存在，忽略解析`))
+      createLogger().info(colors.yellow(`${pageJsonFileAbsolutePath} 文件不存在，忽略解析`))
     }
   }
 

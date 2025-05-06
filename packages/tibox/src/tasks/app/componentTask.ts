@@ -1,8 +1,8 @@
 import path from 'node:path'
 import { access } from 'node:fs/promises'
 import * as _ from 'lodash-es'
-import loadJsonFile from 'load-json-file'
-import chalk from 'chalk'
+import { loadJsonFile } from 'load-json-file'
+import colors from 'picocolors'
 import { createLogger /* , Logger */ } from '../../logger'
 import { Task } from '../task'
 import type { ITaskManager } from '..'
@@ -58,7 +58,7 @@ export class ComponentTask extends Task {
         if (!/no such file or directory/.test(error.message)) {
           throw error
         }
-        createLogger().info(chalk.yellow(`${componentJsonFileAbsolutePath} 文件不存在，忽略解析`))
+        createLogger().info(colors.yellow(`${componentJsonFileAbsolutePath} 文件不存在，忽略解析`))
       }
     }
   }

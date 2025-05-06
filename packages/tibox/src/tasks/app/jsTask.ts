@@ -2,7 +2,7 @@ import path from 'node:path'
 import { access, stat } from 'node:fs/promises'
 import { createReadStream, createWriteStream } from 'node:fs'
 import * as lodash from 'lodash-es'
-import chalk from 'chalk'
+import colors from 'picocolors'
 import through from 'through2'
 import { absolute2Relative, ensureDir, matchImportJsFile } from '../../utils'
 import type { ITaskManager } from '..'
@@ -43,7 +43,7 @@ export class JsTask extends Task {
         if (!/no such file or directory/.test(error.message)) {
           throw error
         }
-        createLogger().info(chalk.yellow(`${this.absolutePath} 文件不存在，忽略解析`))
+        createLogger().info(colors.yellow(`${this.absolutePath} 文件不存在，忽略解析`))
       }
     } else {
       // TODO: extjs需要如何处理?

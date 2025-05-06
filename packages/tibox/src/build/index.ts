@@ -202,7 +202,7 @@ async function doBuild(inlineConfig: InlineConfig = {}): Promise<void> {
   // const unuseFiles = _.pull(allDestFiles, ...allValidDestFiles);
   // if (unuseFiles.length) {
   //   createLogger().info(
-  //     chalk.yellowBright(
+  //     colors.yellowBright(
   //       `移除unuseFiles: ${JSON.stringify(unuseFiles, null, 2)}`
   //     )
   //   );

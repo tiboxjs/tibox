@@ -1,5 +1,5 @@
 import miniprogramci from 'miniprogram-ci'
-import chalk from 'chalk'
+import colors from 'picocolors'
 import type { InlineConfig} from './config';
 import { resolveConfig } from './config'
 import { createLogger } from './logger'
@@ -43,7 +43,7 @@ async function doUpload(inlineConfig: InlineConfig = {}): Promise<UploadOutput> 
       console.log(infos)
     },
   })
-  createLogger().warn(chalk.yellow(`ci.packNpm warning: ${warning}`))
+  createLogger().warn(colors.yellow(`ci.packNpm warning: ${warning}`))
   try {
     const uploadResult = await miniprogramci.upload({
       project,
@@ -59,11 +59,11 @@ async function doUpload(inlineConfig: InlineConfig = {}): Promise<UploadOutput> 
       // qrcodeOutputDest,
       // onProgressUpdate: console.log,
     })
-    console.info(chalk.green(`uploadResult:${JSON.stringify(uploadResult, null, '  ')}`))
+    console.info(colors.green(`uploadResult:${JSON.stringify(uploadResult, null, '  ')}`))
   } catch (error: any) {
-    console.error(chalk.red(`code:${error.code}`))
-    console.error(chalk.red(`path:${error.path}`))
-    console.error(chalk.red(error))
+    console.error(colors.red(`code:${error.code}`))
+    console.error(colors.red(`path:${error.path}`))
+    console.error(colors.red(error))
     process.exit(1)
   }
 

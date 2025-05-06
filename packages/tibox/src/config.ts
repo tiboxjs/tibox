@@ -7,7 +7,7 @@ import { createRequire } from 'node:module'
 import { build } from 'esbuild'
 // import dotenv from 'dotenv'
 // import { expand } from 'dotenv-expand'
-import loadJsonFile from 'load-json-file'
+import { loadJsonFile } from 'load-json-file'
 import * as _ from 'lodash-es'
 import git from 'git-rev-sync'
 import type { Alias, AliasOptions } from '../types/alias'
@@ -394,7 +394,7 @@ export async function resolveConfig(
   //   error?: Error
   // ) => {
   //   logger.warn(
-  //     chalk.yellow.bold(
+  //     colors.yellow.bold(
   //       `(!) "${deprecatedOption}" option is deprecated. ${hint}${
   //         error ? `\n${error.stack}` : ""
   //       }`
@@ -610,7 +610,7 @@ export async function loadConfigFromFile(
   const config = await (typeof configExport === 'function'
     ? configExport(configEnv)
     : configExport)
-  createLogger().info(`resolvedConfig: ${JSON.stringify(config, null, 2)}`)
+    
   if (!isObject(config)) {
     throw new Error(`config must export or return an object.`)
   }

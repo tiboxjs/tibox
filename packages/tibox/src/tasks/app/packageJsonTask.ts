@@ -3,7 +3,7 @@ import { stat } from 'node:fs/promises'
 import { createReadStream, createWriteStream } from 'node:fs'
 import path from 'node:path'
 import { exec } from 'node:child_process'
-import chalk from 'chalk'
+import colors from 'picocolors'
 import * as _ from 'lodash-es'
 import { isNeedHandle } from '../../watcher'
 import { createLogger } from '../../logger'
@@ -61,7 +61,7 @@ export class PackageJsonTask extends Task {
                   err => {
                     if (err) {
                       if (/Unexpected token < in JSON at position 0/.test(err.message)) {
-                        createLogger().error(chalk.red('执行cnpm安装时，registry服务响应异常，请检查网络是否正常'))
+                        createLogger().error(colors.red('执行cnpm安装时，registry服务响应异常，请检查网络是否正常'))
                         resolve('')
                       } else {
                         reject(err)
@@ -72,7 +72,7 @@ export class PackageJsonTask extends Task {
                   }
                 )
               }).catch(err => {
-                createLogger().error(chalk.red(err))
+                createLogger().error(colors.red(err))
                 return Promise.resolve()
               })
             })
@@ -89,11 +89,11 @@ export class PackageJsonTask extends Task {
                     { timeout: 30000 },
                     err => {
                       if (!err) {
-                        createLogger().info(chalk.green(`构建npm包成功 ${Date.now() - time}ms`))
+                        createLogger().info(colors.green(`构建npm包成功 ${Date.now() - time}ms`))
                       } else {
                         const handled = cmdCliFaid(err)
                         if (!handled) {
-                          createLogger().error(chalk.red(err.message))
+                          createLogger().error(colors.red(err.message))
                         }
                       }
                       resolve()

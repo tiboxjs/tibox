@@ -1794,7 +1794,7 @@ export async function matchImportWxmlFile(filePath: string): Promise<RegExpMatch
   const fileContent = await fsp.readFile(filePath, {
     encoding: 'utf-8',
   })
-  // eslint-disable-next-line no-useless-escape
+   
   const matchedResult = fileContent.match(
     /(?<=^ *<import +src *= *['"]).*(?=['"] *(?:\/>|> *<\/import> *>))/gm
   );

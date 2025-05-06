@@ -1,5 +1,5 @@
 import readline from 'node:readline'
-import chalk from 'chalk'
+import colors from 'picocolors'
 
 export type LogType = 'error' | 'warn' | 'info'
 export type LogLevel = LogType | 'silent'
@@ -58,11 +58,11 @@ export function createLogger(level: LogLevel = 'info', options: LoggerOptions = 
         if (options.timestamp) {
           const tag =
             type === 'info'
-              ? chalk.cyan.bold(prefix)
+              ? colors.cyan(colors.bold(prefix))
               : type === 'warn'
-                ? chalk.yellow.bold(prefix)
-                : chalk.red.bold(prefix)
-          return `${chalk.dim(new Date().toLocaleTimeString())} ${tag} ${msg}`
+                ? colors.yellow(colors.bold(prefix))
+                : colors.red(colors.bold(prefix))
+          return `${colors.dim(new Date().toLocaleTimeString())} ${tag} ${msg}`
         } else {
           return msg
         }
@@ -70,7 +70,7 @@ export function createLogger(level: LogLevel = 'info', options: LoggerOptions = 
       if (type === lastType && msg === lastMsg) {
         sameCount++
         clear()
-        console[method](format(), chalk.yellow(`(x${sameCount + 1})`))
+        console[method](format(), colors.yellow(`(x${sameCount + 1})`))
       } else {
         sameCount = 0
         lastMsg = msg

@@ -6,11 +6,11 @@ import { debounce } from 'throttle-debounce'
 import * as _ from 'lodash-es'
 import ora from 'ora'
 import chokidar from 'chokidar'
-import chalk from 'chalk'
+import colors from 'picocolors'
 import { cmdCli, ensureDir, traceOutUnused } from '../utils'
 import { parse } from '../parse'
 import { type InlineConfig, resolveConfig } from '../config'
-import { createLogger } from '../logger'
+// import { createLogger } from '../logger'
 
 export interface DevOptions {
   mock: boolean
@@ -48,13 +48,12 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
     'project.config.json' /* , "tailwind.config.js", "tailwind/", "svg/" */,
   ]
   // const resolvedPath = path.resolve(root, "src/");
-  // logger.info(chalk.green(`resolvedPath: ${resolvedPath}`));
+  // logger.info(colors.green(`resolvedPath: ${resolvedPath}`));
 
   const spinner = ora('解析配置文件...').start()
   try {
     const config = await resolveConfig(inlineConfig, 'dev', 'default', 'production')
 
-    createLogger(inlineConfig.logLevel).info(`config: ${JSON.stringify(config)}`)
     spinner.text = '处理ext文件'
     // TODO: ext.js的处理，还得优化，暂时让小程序跑起来
     await ensureDir(path.resolve(config.root, config.determinedDestDir, 'ext'))
@@ -79,11 +78,11 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
       const time = Date.now() - start
       let str
       if (time < 1000) {
-        str = chalk.greenBright(`${time}ms`)
+        str = colors.greenBright(`${time}ms`)
       } else if (time < 3000) {
-        str = chalk.yellowBright(`${time}ms`)
+        str = colors.yellowBright(`${time}ms`)
       } else {
-        str = chalk.redBright(`${time}ms`)
+        str = colors.redBright(`${time}ms`)
       }
       watchingSpinner.succeed(`处理完成 耗时: ${str}`)
       if (!isHandleIdeOpened) {
@@ -115,8 +114,8 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
           // ignoreInitial: true,
         }
       )
-      .on('all', async (event, filePath) => {
-        createLogger().info(chalk.grey(`${event}, ${filePath}`));
+      .on('all', async (_event, _filePath) => {
+        // createLogger().info(colors.gray(`${event}, ${filePath}`));
         await debounceFunction()
       })
       .on('ready', async () => {
