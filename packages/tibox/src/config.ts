@@ -25,8 +25,7 @@ import {
   normalizePath,
 } from './utils'
 import type { DevOptions } from './dev'
-import type { UploadOptions } from './upload';
-import { resolveUploadOptions } from './upload'
+import  { type UploadOptions, resolveUploadOptions } from './upload';
 import { parseDestFolderName, parseProjectName } from './libs/tools'
 import {
   // type EnvironmentResolveOptions,
@@ -34,8 +33,7 @@ import {
   // type ResolveOptions,
   tryNodeResolve,
 } from './plugins/resolve'
-import type { LogLevel } from './logger';
-import { createLogger } from './logger'
+import  { type LogLevel, createLogger } from './logger';
 import { findNearestNodeModules } from './packages'
 import { loadEnv } from './env'
 const promisifiedRealpath = promisify(fs.realpath)
