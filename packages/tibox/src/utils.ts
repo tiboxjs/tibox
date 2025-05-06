@@ -1939,7 +1939,12 @@ export function cmdCliFaid(err: Error | null): boolean {
   }
 }
 
-export async function traceOutUnuse(context: Context, wholeTask: Record<string, Task>): Promise<void> {
+/**
+ * 跟踪未使用文件 
+ * @param context 
+ * @param wholeTask 
+ */
+export async function traceOutUnused(context: Context, wholeTask: Record<string, Task>): Promise<void> {
   const logger = createLogger(context.config.logLevel)
   /**
    * 项目下需要监听的所有文件

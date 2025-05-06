@@ -7,10 +7,9 @@ import * as _ from 'lodash-es'
 import ora from 'ora'
 import chokidar from 'chokidar'
 import chalk from 'chalk'
-import { cmdCli, ensureDir, traceOutUnuse } from '../utils'
+import { cmdCli, ensureDir, traceOutUnused } from '../utils'
 import { parse } from '../parse'
-import { resolveConfig } from '../config'
-import type { InlineConfig} from '../config';
+import { type InlineConfig, resolveConfig } from '../config'
 import { createLogger } from '../logger'
 
 export interface DevOptions {
@@ -121,7 +120,7 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
         await debounceFunction()
       })
       .on('ready', async () => {
-        await traceOutUnuse(parseResult.taskManager.context, parseResult.taskManager.wholeTask)
+        await traceOutUnused(parseResult.taskManager.context, parseResult.taskManager.wholeTask)
         spinner.succeed('初始化完成，开始监听...')
       })
       .on('error', error => {
