@@ -2,17 +2,23 @@
   "name": "",
   "version": "0.0.1",
   "description": "",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "dev": "tibox dev --mode development --product default",
     "build": "tibox build --mode production --product default",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint ."
+  },
+  "engines": {
+    "node": "^18.18.0 || ^20.0.0 || >=22.0.0"
   },
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@tibox/tibox-cli": "^0.0.5",
-    "eslint": "^8.54.0",
-    "eslint-plugin-import": "^2.29.0"
+    "@eslint/js": "^9.26.0",
+    "@tibox/tibox-cli": "^0.1.0",
+    "eslint": "^9.26.0",
+    "miniprogram-api-typings": "^4.0.7"
   }
 }

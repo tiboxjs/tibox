@@ -1,21 +1,13 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { loadEnv } from '@tibox/tibox-cli'
-// eslint-disable-next-line import/no-extraneous-dependencies
-// import through2 from 'through2'
-// import path from 'path'
-// eslint-disable-next-line import/no-extraneous-dependencies
-// import chalk from 'chalk'
-// import os from 'os'
-// import fs from 'fs'
+import { defineConfig, loadEnv } from "@tibox/tibox-cli";
 
-export default async ({ product, mode, command }) => {
-  const { TIBOX_APPID } = loadEnv(product, mode, process.cwd())
-  const ext = await import(`./exts/${product}.${mode}.js`)
+export default defineConfig(async ({ product, mode, command }) => {
+  const { TIBOX_APPID } = loadEnv(product, mode, process.cwd());
+  const ext = await import(`./exts/${product}.${mode}.js`);
 
   return {
-    project: 'demo',
-    product: 'default',
-    mode: 'development',
+    project: "demo",
+    product: "default",
+    mode: "development",
     // sourceDir: 'src',
     // destDir: 'dist',
     appid: TIBOX_APPID,
@@ -23,9 +15,9 @@ export default async ({ product, mode, command }) => {
     dev: {},
     build: {},
     upload: {
-      robot: 1,
+      robot: 2,
     },
-    envDir: './',
+    envDir: "./",
     plugins: [
       // {
       //   name: '',
@@ -37,5 +29,5 @@ export default async ({ product, mode, command }) => {
       //   },
       // },
     ],
-  }
-}
+  };
+});
