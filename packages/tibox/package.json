@@ -1,6 +1,6 @@
 {
   "name": "@tibox/tibox-cli",
-  "version": "0.0.5",
+  "version": "0.1.0",
   "description": "tibox",
   "main": "dist/index.js",
   "type": "module",
