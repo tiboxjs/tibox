@@ -1,4 +1,4 @@
-// import path from 'node:path'
+import path from 'node:path'
 // import { createWriteStream } from 'node:fs'
 // import os from 'node:os'
 import * as _ from 'lodash-es'
@@ -7,7 +7,7 @@ import type { InlineConfig} from '../config';
 import { resolveConfig } from '../config'
 import { parse } from '../parse'
 // import { TaskOptions } from "../libs/options";
-// import { ensureDir } from '../utils'
+import { ensureDir } from '../utils'
 // export interface BuildOptions {
   // /**
   //  * Base public path when served in production.
@@ -182,6 +182,8 @@ export async function build(inlineConfig: InlineConfig = {}): Promise<void> {
 
 async function doBuild(inlineConfig: InlineConfig = {}): Promise<void> {
   const config = await resolveConfig(inlineConfig, 'build', 'default', 'production')
+
+  await ensureDir(path.resolve(config.root, config.determinedDestDir, 'ext'))
 
   const parseResult = await parse(config)
   await parseResult.taskManager.handle(ora())
