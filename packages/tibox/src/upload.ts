@@ -1,6 +1,6 @@
 import miniprogramci from 'miniprogram-ci'
 import colors from 'picocolors'
-import type { InlineConfig} from './config';
+import type { InlineConfig } from './config';
 import { resolveConfig } from './config'
 import { createLogger } from './logger'
 
