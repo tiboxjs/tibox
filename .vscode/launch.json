@@ -6,7 +6,7 @@
   "configurations": [
     
     {
-      "type": "pwa-node",
+      "type": "node",
       "request": "launch",
       "name": "Launch Program",
       "skipFiles": ["<node_internals>/**"],
@@ -18,12 +18,23 @@
       "request": "launch",
       "name": "TiBox Debug",
       "runtimeExecutable": "pnpm",
+      // "program": "${workspaceFolder}/node_modules/.bin/tibox",
       "runtimeArgs": ["debug"],
       "console": "integratedTerminal",
       "restart": true,
       "protocol": "auto",
       "port": 9229,
-      "autoAttachChildProcesses": true
+      "autoAttachChildProcesses": true,
+
+
+
+      // "skipFiles": ["<node_internals>/**"],
+
+      // "args": ["dev", "--port", "3000"],
+
+      // "sourceMaps": true,
+      // "outFiles": ["${workspaceFolder}/node_modules/my-cli/dist/**/*.js"],
+      // "resolveSourceMapLocations": ["${workspaceFolder}/node_modules/my-cli/**"]
     }
   ]
 }

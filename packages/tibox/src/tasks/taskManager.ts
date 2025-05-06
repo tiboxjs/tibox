@@ -1,23 +1,23 @@
-import _ from 'lodash'
-import { ITaskManager } from '.'
-
+import path from 'node:path'
+import * as _ from 'lodash-es'
+import type { Ora } from 'ora'
+import { absolute2Relative, parseDir, prune } from '../utils'
 import { AppTask } from './app/appTask'
+
 import { ComponentTask } from './app/componentTask'
 import { ImageTask } from './app/imageTask'
 import { JsonTask } from './app/jsonTask'
 import { JsTask } from './app/jsTask'
 import { PageTask } from './app/pageTask'
 import { ProjectConfigTask } from './app/projectConfigTask'
-import { Context, Task } from './task'
+import type { Context, Task } from './task'
 import { WxmlTask } from './app/wxmlTask'
 import { WxssTask } from './app/wxssTask'
 import { PackageJsonTask } from './app/packageJsonTask'
-import path from 'path'
-import { absolute2Relative, parseDir, prune } from '../utils'
 // import { createLogger } from "../logger";
 // import chalk from "chalk";
 import { SitemapTask } from './app/sitemapTask'
-import { Ora } from 'ora'
+import type { ITaskManager } from '.'
 
 /**
  * 根节点任务
@@ -177,7 +177,7 @@ export class TaskManager implements ITaskManager {
     const config = this.context.config
     spinner.text = '解析小程序文件依赖关系'
     const allValidDestFiles = _.map(this.wholeTask, task => task.filePath)
-    const ignoreDestFiles = ['project.private.config.json']
+    const ignoreDestFiles = ['project.private.config.json', 'ext/ext.js']
 
     spinner.text = `扫描${config.determinedDestDir}目录无用文件`
     const allDestFiles = _.map(
@@ -188,18 +188,18 @@ export class TaskManager implements ITaskManager {
       (filePath: string) => path.relative(path.join(config.root, config.determinedDestDir), filePath)
     )
 
-    const unuseFiles = _.pull(
+    const unusedFiles = _.pull(
       allDestFiles,
       ..._.map(allValidDestFiles, item => path.normalize(item)),
       ..._.map(ignoreDestFiles, item => path.normalize(item))
     )
-    if (unuseFiles.length) {
+    if (unusedFiles.length) {
       spinner.info('移除无用文件')
-      _.forEach(unuseFiles, item => {
+      _.forEach(unusedFiles, item => {
         spinner.info(item)
       })
       await Promise.all(
-        _.map(unuseFiles, unuseItem => prune(path.resolve(config.root, config.determinedDestDir, unuseItem)))
+        _.map(unusedFiles, unusedItem => prune(path.resolve(config.root, config.determinedDestDir, unusedItem)))
       )
     }
   }

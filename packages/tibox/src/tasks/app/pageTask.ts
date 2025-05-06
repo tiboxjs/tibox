@@ -1,12 +1,12 @@
-import { ITaskManager } from '..'
-import _ from 'lodash'
-import path from 'path'
-import { absolute2Relative } from '../../utils'
+import path from 'node:path'
+import { access } from 'node:fs/promises'
+import * as _ from 'lodash-es'
 import loadJsonFile from 'load-json-file'
-import { Task } from '../task'
-import { access } from 'fs/promises'
-import { createLogger } from '../../logger'
 import chalk from 'chalk'
+import type { ITaskManager } from '..'
+import { absolute2Relative } from '../../utils'
+import { Task } from '../task'
+import { createLogger } from '../../logger'
 
 export type MiniProgramPageConfig = {
   usingComponents?: Record<string, string>

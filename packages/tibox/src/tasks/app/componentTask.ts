@@ -1,13 +1,13 @@
-import _ from 'lodash'
-import path from 'path'
-import { access } from 'fs/promises'
+import path from 'node:path'
+import { access } from 'node:fs/promises'
+import * as _ from 'lodash-es'
+import loadJsonFile from 'load-json-file'
+import chalk from 'chalk'
 import { createLogger /* , Logger */ } from '../../logger'
 import { Task } from '../task'
-import { ITaskManager } from '..'
-import loadJsonFile from 'load-json-file'
+import type { ITaskManager } from '..'
 import { absolute2Relative } from '../../utils'
 import { DEBUGING } from '../../constants'
-import chalk from 'chalk'
 export type MiniProgramComponentConfig = {
   usingComponents?: Record<string, string>
 }

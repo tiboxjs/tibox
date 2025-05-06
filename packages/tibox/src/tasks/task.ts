@@ -1,8 +1,8 @@
-import _ from 'lodash'
-import path from 'path'
+import path from 'node:path'
+import * as _ from 'lodash-es'
 // import path from "path";
-import { ITaskManager } from '.'
-import { ResolvedConfig } from '..'
+import type { ResolvedConfig } from '..'
+import type { ITaskManager } from '.'
 
 /**
  * 上下文环境

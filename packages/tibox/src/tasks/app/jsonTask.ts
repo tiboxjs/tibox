@@ -1,23 +1,23 @@
 // import { createLogger } from "../logger";
-import { ITaskManager } from '..'
-import { Task } from '../task'
-import { stat } from 'fs/promises'
-import { createWriteStream, createReadStream } from 'fs'
-import { ensureDir } from '../../utils'
-import path from 'path'
-import { isNeedHandle } from '../../watcher'
+import { stat } from 'node:fs/promises'
+import { createReadStream, createWriteStream } from 'node:fs'
+import path from 'node:path'
 import through from 'through2'
+import type { ITaskManager } from '..'
+import { Task } from '../task'
+import { ensureDir } from '../../utils'
+import { isNeedHandle } from '../../watcher'
 
 export class JsonTask extends Task {
   public id(): string {
     return this.relativeToRootPath
   }
 
-  public override async onInit(options: ITaskManager): Promise<void> {
+  public override async onInit(_: ITaskManager): Promise<void> {
     //
   }
 
-  public override async onHandle(options: ITaskManager): Promise<void> {
+  public override async onHandle(_: ITaskManager): Promise<void> {
     const isDependencies = this.context.config.isDependencies
     if (!isDependencies(this.filePath)) {
       try {

@@ -1,14 +1,14 @@
-import path from 'path'
-import { absolute2Relative, matchImportJsFile, ensureDir } from '../../utils'
-import { ITaskManager } from '..'
-import { Task } from '../task'
-import _ from 'lodash'
-import { stat, access } from 'fs/promises'
-import { createWriteStream, createReadStream } from 'fs'
-import { createLogger } from '../../logger'
+import path from 'node:path'
+import { access, stat } from 'node:fs/promises'
+import { createReadStream, createWriteStream } from 'node:fs'
+import * as lodash from 'lodash-es'
 import chalk from 'chalk'
-import { isNeedHandle } from '../../watcher'
 import through from 'through2'
+import { absolute2Relative, ensureDir, matchImportJsFile } from '../../utils'
+import type { ITaskManager } from '..'
+import { Task } from '../task'
+import { createLogger } from '../../logger'
+import { isNeedHandle } from '../../watcher'
 
 export class JsTask extends Task {
   public id(): string {
@@ -18,13 +18,13 @@ export class JsTask extends Task {
   public override async onInit(options: ITaskManager): Promise<void> {
     this.tasks = []
     const isDependencies = this.context.config.isDependencies
-    if (!isDependencies(this.filePath) && !/(\\|\/)ext\.js/.test(this.filePath)) {
+    if (!isDependencies(this.filePath) && !/(?:\\|\/)ext\.js/.test(this.filePath)) {
       try {
         await access(this.absolutePath)
         const matchedResult = await matchImportJsFile(this.absolutePath)
 
         const jsTasks = await Promise.all(
-          _.map(matchedResult, item => {
+          lodash.map(matchedResult, item => {
             if (!isDependencies(item) && !/\.js$/.test(item)) {
               item += '.js'
             }
@@ -50,9 +50,9 @@ export class JsTask extends Task {
     }
   }
 
-  public override async onHandle(options: ITaskManager): Promise<void> {
+  public override async onHandle(_: ITaskManager): Promise<void> {
     const isDependencies = this.context.config.isDependencies
-    if (!isDependencies(this.filePath) && !/(\\|\/)ext\.js/.test(this.filePath)) {
+    if (!isDependencies(this.filePath) && !/(?:\\|\/)ext\.js/.test(this.filePath)) {
       try {
         const stats = await stat(this.absolutePath)
         if (isNeedHandle(this.relativeToRootPath, stats.mtimeMs)) {
@@ -72,7 +72,7 @@ export class JsTask extends Task {
                     }
                     return mapper[matched] || matched
                   }
-                  fileContent = _.replace(fileContent, /\[\[.*?\]\]/g, replacer)
+                  fileContent = lodash.replace(fileContent, /\[\[.*?\]\]/g, replacer)
                   // TODO: 待优化
                   this.context.config.plugins.forEach(async plugin => {
                     fileContent = await plugin.transform(fileContent)

@@ -1,5 +1,5 @@
 // const minimist = require('minimist')
-// const _ = require('lodash');
+// const _ = require('lodash-es');
 // const camel = require('naming-style').camel
 // const path = require('path')
 // const fs = require('fs')

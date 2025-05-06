@@ -1,4 +1,4 @@
-import { Plugin, ResolvedConfig } from '../config'
+import type { Plugin, ResolvedConfig } from '../config'
 
 export interface TaskOptions {
   destDir: string

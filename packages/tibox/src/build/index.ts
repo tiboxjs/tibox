@@ -1,13 +1,14 @@
-import path from 'path'
-import { InlineConfig, resolveConfig } from '../config'
+// import path from 'node:path'
+// import { createWriteStream } from 'node:fs'
+// import os from 'node:os'
+import * as _ from 'lodash-es'
+import ora from 'ora'
+import type { InlineConfig} from '../config';
+import { resolveConfig } from '../config'
 import { parse } from '../parse'
 // import { TaskOptions } from "../libs/options";
-import _ from 'lodash'
-import { createWriteStream } from 'fs'
-import { ensureDir } from '../utils'
-import os from 'os'
-import ora from 'ora'
-export interface BuildOptions {
+// import { ensureDir } from '../utils'
+// export interface BuildOptions {
   // /**
   //  * Base public path when served in production.
   //  * @deprecated `base` is now a root-level config option.
@@ -159,14 +160,14 @@ export interface BuildOptions {
   //   * https://rollupjs.org/guide/en/#watchoptions
   //   */
   //  watch?: WatcherOptions | null
-}
+// }
 
-export interface BuildOutput {}
+// export interface BuildOutput {}
 /**
  * Bundles the app for production.
  * Returns a Promise containing the build result.
  */
-export async function build(inlineConfig: InlineConfig = {}): Promise<BuildOutput> {
+export async function build(inlineConfig: InlineConfig = {}): Promise<void> {
   // parallelCallCounts++;
   try {
     return await doBuild(inlineConfig)
@@ -179,14 +180,8 @@ export async function build(inlineConfig: InlineConfig = {}): Promise<BuildOutpu
   }
 }
 
-async function doBuild(inlineConfig: InlineConfig = {}): Promise<BuildOutput> {
+async function doBuild(inlineConfig: InlineConfig = {}): Promise<void> {
   const config = await resolveConfig(inlineConfig, 'build', 'default', 'production')
-
-  // TODO: ext.js的处理，还得优化，暂时让小程序跑起来
-  await ensureDir(path.resolve(config.root, config.determinedDestDir, 'ext'))
-
-  const stream = createWriteStream(path.resolve(config.root, `${config.determinedDestDir}/ext/ext.js`), { flags: 'w' })
-  stream.write(Buffer.from(`module.exports = ${JSON.stringify(config.ext || {}, null, 2)}${os.EOL}`))
 
   const parseResult = await parse(config)
   await parseResult.taskManager.handle(ora())
@@ -218,12 +213,12 @@ async function doBuild(inlineConfig: InlineConfig = {}): Promise<BuildOutput> {
   //   );
   // }
 
-  return {}
+  // return {}
 }
 
-export type ResolvedBuildOptions = Required<Omit<BuildOptions, 'base'>>
+export type ResolvedBuildOptions = Required<Omit<any, 'base'>>
 
-export function resolveBuildOptions(raw?: BuildOptions): ResolvedBuildOptions {
+export function resolveBuildOptions(raw?: any): ResolvedBuildOptions {
   const resolved: ResolvedBuildOptions = {
     // target: "modules",
     // polyfillDynamicImport: false,

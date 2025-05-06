@@ -1,13 +1,20 @@
-import path from 'path'
-import { fileURLToPath } from 'url'
+import path from 'node:path'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import MagicString from 'magic-string'
+import { defineConfig } from 'rollup'
+import type { Plugin } from 'rollup'
 
-import _ from 'lodash'
+// import * as _ from 'lodash'
 
-import typescript from '@rollup/plugin-typescript'
 import nodeResolve from '@rollup/plugin-node-resolve'
-// import commonjs from '@rollup/plugin-commonjs'
+import commonjs from '@rollup/plugin-commonjs'
+import esbuild from 'rollup-plugin-esbuild'
 import json from '@rollup/plugin-json'
-import pkg from './package.json' assert { type: 'json' };
+
+const pkg = JSON.parse(
+  readFileSync(new URL('./package.json', import.meta.url)).toString(),
+)
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 
@@ -15,8 +22,36 @@ const external = Object.keys(pkg.dependencies || {})
 
 // _.remove(external, (name) => name === 'miniprogram-ci')
 
-export default {
-  input: ['src/index.ts', 'src/cli.ts'],
+
+/**
+ * Inject CJS Context for each deps chunk
+ */
+function cjsPatchPlugin(): Plugin {
+  const cjsPatch = `
+import { createRequire as __cjs_createRequire } from 'node:module';
+
+const __require = __cjs_createRequire(import.meta.url);
+`.trimStart()
+
+  return {
+    name: 'cjs-chunk-patch',
+    renderChunk(code, chunk) {
+      if (!chunk.fileName.includes('chunks/dep-')) return
+      if (!code.includes('__require')) return
+
+      const match = /^(?:import[\s\S]*?;\s*)+/.exec(code)
+      const index = match ? match.index! + match[0].length : 0
+      const s = new MagicString(code)
+      // inject after the last `import`
+      s.appendRight(index, cjsPatch)
+      console.log('patched cjs context: ' + chunk.fileName)
+      return s.toString()
+    },
+  }
+}
+
+export default defineConfig({
+  input: ['src/index.ts', 'src/cli.ts', 'src/constants.ts'],
   output: {
     dir: 'dist',
     sourcemap: true,
@@ -33,10 +68,21 @@ export default {
     //   ignore: ['bufferutil', 'utf-8-validate'],
     // }),
     nodeResolve({ preferBuiltins: true }),
-    json(),
-    typescript({
-      tsconfig: path.resolve(__dirname, 'tsconfig.json'),
-      sourceMap: true,
+    esbuild({
+      tsconfig: path.resolve(__dirname, 'src/tsconfig.json'),
+      target: 'node18',
+      // ...esbuildOptions,
     }),
+    commonjs({
+      extensions: ['.js'],
+      // Optional peer deps of ws. Native deps that are mostly for performance.
+      // Since ws is not that perf critical for us, just ignore these deps.
+      ignore: ['bufferutil', 'utf-8-validate'],
+      sourceMap: false,
+      strictRequires: 'auto',
+    }),
+    json(),
+    cjsPatchPlugin(),
   ],
-}
+})
+

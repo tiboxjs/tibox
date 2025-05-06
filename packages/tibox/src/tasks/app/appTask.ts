@@ -1,11 +1,11 @@
-import path from 'path'
-import _ from 'lodash'
+import path from 'node:path'
+import * as _ from 'lodash-es'
 // import chalk from "chalk";
 import loadJsonFile from 'load-json-file'
-import { Context, Task } from '../task'
-import { ITaskManager } from '..'
-import { parseDir } from '../../utils'
-import { isImage } from '../../utils'
+import type { Context} from '../task';
+import { Task } from '../task'
+import type { ITaskManager } from '..'
+import { isImage, parseDir  } from '../../utils'
 // import through2 from "through2";
 // import { RootTask } from "./rootTask";
 
@@ -60,8 +60,16 @@ export class AppTask extends Task {
             )
         )
       ),
-      parseDir(path.resolve(this.context.config.root, `src/${appJson.workers}`), {
-        recursive: true,
+      new Promise<string>((resolve, reject) => {
+        if (appJson.workers) {
+          resolve(appJson.workers)
+        } else {
+          reject("no workers")
+        }
+      }).then((workers) => {
+        return parseDir(path.resolve(this.context.config.root, `src/${workers}`), {
+          recursive: true,
+        })
       })
         .then(fileList => {
           return _.map(fileList, filePath => {
@@ -70,6 +78,12 @@ export class AppTask extends Task {
         })
         .then(async workerFiles => {
           return Promise.all(_.map(workerFiles, workerPath => options.onRegistJsTaskCallback(workerPath)))
+        }).catch(error => {
+          if (error === "no workers") {
+            return []
+          } else {
+            throw error
+          }
         }),
       Promise.all(
         _.map(appJson.usingComponents, item => {

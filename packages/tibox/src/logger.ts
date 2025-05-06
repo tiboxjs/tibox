@@ -1,7 +1,5 @@
-/* eslint no-console: 0 */
-
+import readline from 'node:readline'
 import chalk from 'chalk'
-import readline from 'readline'
 
 export type LogType = 'error' | 'warn' | 'info'
 export type LogLevel = LogType | 'silent'

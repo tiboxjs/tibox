@@ -1,6 +1,7 @@
-import { InlineConfig, resolveConfig } from './config'
-import { Project, packNpm, upload as ciUpload } from 'miniprogram-ci'
+import miniprogramci from 'miniprogram-ci'
 import chalk from 'chalk'
+import type { InlineConfig} from './config';
+import { resolveConfig } from './config'
 import { createLogger } from './logger'
 
 export interface UploadOptions {
@@ -9,7 +10,7 @@ export interface UploadOptions {
   robot?: number
 }
 
-export type UploadOutput = {}
+export type UploadOutput = any
 /**
  * Bundles the app for production.
  * Returns a Promise containing the build result.
@@ -29,14 +30,14 @@ export async function upload(inlineConfig: InlineConfig = {}): Promise<UploadOut
 
 async function doUpload(inlineConfig: InlineConfig = {}): Promise<UploadOutput> {
   const config = await resolveConfig(inlineConfig, 'upload', 'default', 'production')
-  const project = new Project({
+  const project = new miniprogramci.Project({
     appid: config.appid,
     type: 'miniProgram',
     projectPath: config.determinedDestDir,
     privateKeyPath: config.upload?.privateKeyPath,
     ignores: ['node_modules/**/*', 'yarn.lock', 'yarn-error.log'],
   })
-  const warning = await packNpm(project, {
+  const warning = await miniprogramci.packNpm(project, {
     ignores: ['pack_npm_ignore_list'],
     reporter: infos => {
       console.log(infos)
@@ -44,7 +45,7 @@ async function doUpload(inlineConfig: InlineConfig = {}): Promise<UploadOutput> 
   })
   createLogger().warn(chalk.yellow(`ci.packNpm warning: ${warning}`))
   try {
-    const uploadResult = await ciUpload({
+    const uploadResult = await miniprogramci.upload({
       project,
       version: config.version,
       desc: config.upload?.desc,

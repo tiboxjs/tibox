@@ -1,6 +1,5 @@
-// eslint-disable-next-line node/no-missing-import
-import { ResolvedConfig } from '../'
-import _ from 'lodash'
+// import _ from 'lodash-es'
+import type { ResolvedConfig } from '../'
 import { TaskManager } from '../tasks/taskManager'
 
 /**

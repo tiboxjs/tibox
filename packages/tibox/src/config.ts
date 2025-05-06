@@ -1,24 +1,44 @@
-import path from 'path'
-import fs from 'fs'
-import { BuildOptions, resolveBuildOptions, ResolvedBuildOptions } from './build'
+import fs from 'node:fs'
+import path from 'node:path'
+import fsp from 'node:fs/promises'
+import { pathToFileURL } from 'node:url'
+import { promisify } from 'node:util'
+import { createRequire } from 'node:module'
 import { build } from 'esbuild'
-import dotenv from 'dotenv'
-import { expand } from 'dotenv-expand'
+// import dotenv from 'dotenv'
+// import { expand } from 'dotenv-expand'
+import loadJsonFile from 'load-json-file'
+import * as _ from 'lodash-es'
+import git from 'git-rev-sync'
+import type { Alias, AliasOptions } from '../types/alias'
+import type { ResolvedBuildOptions } from './build';
+import { resolveBuildOptions } from './build'
 import {
+  isFilePathESM,
+  isNodeBuiltin,
+  isNodeLikeBuiltin,
   // createDebugger,
   // isExternalUrl,
   isObject,
-  lookupFile,
+  nodeLikeBuiltins,
+  // lookupFile,
   normalizePath,
 } from './utils'
-import { AliasOptions, Alias } from '../types/alias'
-import { DevOptions } from './dev'
-import { resolveUploadOptions, UploadOptions } from './upload'
+import type { DevOptions } from './dev'
+import type { UploadOptions } from './upload';
+import { resolveUploadOptions } from './upload'
 import { parseDestFolderName, parseProjectName } from './libs/tools'
-import loadJsonFile from 'load-json-file'
-import { LogLevel } from './logger'
-import _ from 'lodash'
-import git from 'git-rev-sync'
+import {
+  // type EnvironmentResolveOptions,
+  // type InternalResolveOptions,
+  // type ResolveOptions,
+  tryNodeResolve,
+} from './plugins/resolve'
+import type { LogLevel } from './logger';
+import { createLogger } from './logger'
+import { findNearestNodeModules } from './packages'
+import { loadEnv } from './env'
+const promisifiedRealpath = promisify(fs.realpath)
 
 // import { CLIENT_DIR, DEFAULT_ASSETS_RE } from './constants'
 export interface ConfigEnv {
@@ -27,13 +47,45 @@ export interface ConfigEnv {
   mode: string
 }
 
+/**
+ * spa: include SPA fallback middleware and configure sirv with `single: true` in preview
+ *
+ * mpa: only include non-SPA HTML middlewares
+ *
+ * custom: don't include HTML middlewares
+ */
+export type AppType = 'spa' | 'mpa' | 'custom'
+
+export type UserConfigFnObject = (env: ConfigEnv) => UserConfig
+export type UserConfigFnPromise = (env: ConfigEnv) => Promise<UserConfig>
 export type UserConfigFn = (env: ConfigEnv) => UserConfig | Promise<UserConfig>
-export type UserConfigExport = UserConfig | Promise<UserConfig> | UserConfigFn
+
+export type UserConfigExport =
+  | UserConfig
+  | Promise<UserConfig>
+  | UserConfigFnObject
+  | UserConfigFnPromise
+  | UserConfigFn
+
+/**
+ * Type helper to make it easier to use vite.config.ts
+ * accepts a direct {@link UserConfig} object, or a function that returns it.
+ * The function receives a {@link ConfigEnv} object.
+ */
+export function defineConfig(config: UserConfig): UserConfig
+export function defineConfig(config: Promise<UserConfig>): Promise<UserConfig>
+export function defineConfig(config: UserConfigFnObject): UserConfigFnObject
+export function defineConfig(config: UserConfigFnPromise): UserConfigFnPromise
+export function defineConfig(config: UserConfigFn): UserConfigFn
+export function defineConfig(config: UserConfigExport): UserConfigExport
+export function defineConfig(config: UserConfigExport): UserConfigExport {
+  return config
+}
 
 /**
  * 插件
  */
-export interface Plugin {
+export interface TiBoxPlugin {
   name: string
   transform: (code: string) => string | Promise<string>
 }
@@ -61,7 +113,7 @@ export interface UserConfig {
   /**
    * Build specific options
    */
-  build?: BuildOptions
+  build?: any
 
   /**
    * upload specific options
@@ -81,7 +133,10 @@ export interface UserConfig {
    */
   logLevel?: LogLevel
 
-  plugins?: Plugin[]
+  plugins?: TiBoxPlugin[]
+
+  /// 环境变量的前缀，默认是"TIBOX_"
+  envPrefix?: string | string[]
 }
 
 export interface InlineConfig extends UserConfig {
@@ -135,7 +190,7 @@ export type ResolvedConfig = Readonly<
     // resolve: ResolveOptions & {
     //   alias: Alias[]
     // }
-    plugins: readonly Plugin[]
+    plugins: readonly TiBoxPlugin[]
     // dev: ResolvedDevOptions;
     build: ResolvedBuildOptions
     replacer?: (key: string) => string
@@ -151,6 +206,14 @@ type PackageJson = {
   dependencies: Record<string, string>
 }
 
+/**
+ * 解析用户项目中 tibox.config.[m]js 文件
+ * @param inlineConfig 命令行中传递的配置
+ * @param command 子命令
+ * @param defaultProduct 默认 Product
+ * @param defaultMode 默认 Mode
+ * @returns 
+ */
 export async function resolveConfig(
   inlineConfig: InlineConfig,
   command: 'build' | 'dev' | 'upload',
@@ -169,7 +232,7 @@ export async function resolveConfig(
     process.env.NODE_ENV = 'production'
   }
 
-  const configEnv = {
+  const configEnv: ConfigEnv = {
     product,
     mode,
     command,
@@ -255,17 +318,18 @@ export async function resolveConfig(
     isDependencies: name => {
       return (
         /^weui-miniprogram/.test(name) ||
-        _.some(packageJson.dependencies, (item, key) => key === name.replace(/\\/, '/'))
+        _.some(packageJson.dependencies, (_: any, key: string) => key === name.replace(/\\/, '/'))
       )
     },
-    project: config.project || 'newProject',
+    project: config.project || 'project',
     product: config.product || 'default',
     mode,
     version: packageJson.version,
     commitId: (() => {
       try {
         return git.short()
-      } catch (error: any) {
+      } catch (_: any) {
+        // git 没有初始化，用户可能没有创建 git 仓库，属于正常现象
         return '-'
       }
     })(),
@@ -491,11 +555,19 @@ function normalizeSingleAlias({ find, replacement }: Alias): Alias {
 //   return [prePlugins, normalPlugins, postPlugins];
 // }
 
+/**
+ * 从 tibox.config.[m]js 文件加载配置内容
+ * @param configFile 配置文件文件名
+ * @param configRoot 配置文件所在路径
+ * @returns 
+ */
 export async function loadConfigFromFile(
   configEnv: ConfigEnv,
   configFile?: string,
-  configRoot: string = process.cwd()
-  // logLevel?: LogLevel
+  configRoot: string = process.cwd(),
+  // logLevel?: LogLevel,
+  // customLogger?: Logger,
+  // configLoader: 'bundle' | 'runner' | 'native' = 'bundle'
 ): Promise<{
   path: string
   config: UserConfig
@@ -504,7 +576,7 @@ export async function loadConfigFromFile(
   // const start = Date.now();
 
   let resolvedPath: string | undefined
-  let dependencies: string[] = []
+  // const dependencies: string[] = []
 
   if (configFile) {
     // explicit config path is always resolved from cwd
@@ -519,126 +591,220 @@ export async function loadConfigFromFile(
   }
 
   if (!resolvedPath) {
+    createLogger().warn(`"no config file found."`)
     // debug("no config file found.");
     return null
   }
 
-  try {
-    let userConfig: UserConfigExport | undefined
+  // try {
+  // const resolver =
+  //   configLoader === 'bundle'
+  //     ? bundleAndLoadConfigFile
+  //     : configLoader === 'runner'
+  //       ? runnerImportConfigFile
+  //       : nativeImportConfigFile
 
-    if (!userConfig) {
-      // 1. try to directly require the module (assuming commonjs)
-      try {
-        // clear cache in case of server restart
-        delete require.cache[require.resolve(resolvedPath)]
-        userConfig = require(resolvedPath)
-        // debug(`cjs config loaded in ${Date.now() - start}ms`);
-      } catch (e: any) {
-        const ignored = new RegExp(
-          [
-            `Cannot use import statement`,
-            `Must use import to load ES Module`,
-            // #1635, #2050 some Node 12.x versions don't have esm detection
-            // so it throws normal syntax errors when encountering esm syntax
-            `Unexpected token`,
-            `Unexpected identifier`,
-          ].join('|')
-        )
-        if (!ignored.test(e.message)) {
-          throw e
-        }
-      }
-    }
+  const resolver = bundleAndLoadConfigFile
 
-    if (!userConfig) {
-      // 2. if we reach here, the file is ts or using es import syntax, or
-      // the user has type: "module" in their package.json (#917)
-      // transpile es import syntax to require syntax using rollup.
-      // lazy require rollup (it's actually in dependencies)
-      const bundled = await bundleConfigFile(resolvedPath)
-      dependencies = bundled.dependencies
-      userConfig = await loadConfigFromBundledFile(resolvedPath, bundled.code)
-      // debug(`bundled config file loaded in ${Date.now() - start}ms`);
-    }
+  const { configExport, dependencies } = await resolver(resolvedPath)
+  // debug?.(`config file loaded in ${getTime()}`)
 
-    const config = await (typeof userConfig === 'function' ? userConfig(configEnv) : userConfig)
-    // if (!isObject(config)) {
-    //   throw new Error(`config must export or return an object.`);
-    // }
-    return {
-      path: normalizePath(resolvedPath),
-      config,
-      dependencies,
-    }
-  } catch (e) {
-    // createLogger(logLevel).error(
-    //   chalk.red(`failed to load config from ${resolvedPath}`)
-    // );
+  const config = await (typeof configExport === 'function'
+    ? configExport(configEnv)
+    : configExport)
+  createLogger().info(`resolvedConfig: ${JSON.stringify(config, null, 2)}`)
+  if (!isObject(config)) {
+    throw new Error(`config must export or return an object.`)
+  }
 
-    // TODO: 下面这行我自己添加的
-    console.error(e)
-    throw e
+  return {
+    path: normalizePath(resolvedPath),
+    config,
+    dependencies,
+  }
+  // } catch (e) {
+  //   const logger = createLogger(logLevel /* , { customLogger } */)
+  //   // checkBadCharactersInPath('The config path', resolvedPath, logger)
+  //   // logger.error(colors.red(`failed to load config from ${resolvedPath}`), {
+  //   //   error: e,
+  //   // })
+  //   throw e
+  // }
+}
+
+/**
+ * 配置文件打捆并加载
+ * @param resolvedPath 
+ * @returns 
+ */
+async function bundleAndLoadConfigFile(resolvedPath: string) {
+  const isESM =
+    typeof process.versions.deno === 'string' || isFilePathESM(resolvedPath)
+
+  const bundled = await bundleConfigFile(resolvedPath, isESM )
+  const userConfig = await loadConfigFromBundledFile(
+    resolvedPath,
+    bundled.code,
+    isESM,
+  )
+  return {
+    configExport: userConfig,
+    dependencies: bundled.dependencies,
   }
 }
 
 /**
- * 打包配置文件，将其依赖一起解析
+ * 打捆配置文件，将其依赖一起解析
  * @param fileName
  * @param mjs
  * @returns
  */
-async function bundleConfigFile(fileName: string, mjs = false): Promise<{ code: string; dependencies: string[] }> {
+
+async function bundleConfigFile(
+  fileName: string,
+  isESM: boolean,
+): Promise<{ code: string; dependencies: string[] }> {
+  // const isModuleSyncConditionEnabled = (await import('#module-sync-enabled'))
+  //   .default
+
+  const dirnameVarName = '__vite_injected_original_dirname'
+  const filenameVarName = '__vite_injected_original_filename'
+  const importMetaUrlVarName = '__vite_injected_original_import_meta_url'
   const result = await build({
     absWorkingDir: process.cwd(),
     entryPoints: [fileName],
-    outfile: 'out.js',
     write: false,
+    target: [`node${process.versions.node}`],
     platform: 'node',
     bundle: true,
-    format: mjs ? 'esm' : 'cjs',
+    format: isESM ? 'esm' : 'cjs',
+    mainFields: ['main'],
     sourcemap: 'inline',
+    // the last slash is needed to make the path correct
+    sourceRoot: path.dirname(fileName) + path.sep,
     metafile: true,
+    define: {
+      __dirname: dirnameVarName,
+      __filename: filenameVarName,
+      'import.meta.url': importMetaUrlVarName,
+      'import.meta.dirname': dirnameVarName,
+      'import.meta.filename': filenameVarName,
+    },
     plugins: [
       {
         name: 'externalize-deps',
         setup(build) {
-          build.onResolve({ filter: /.*/ }, args => {
-            const id = args.path
-            if (id[0] !== '.' && !path.isAbsolute(id)) {
+          const packageCache = new Map()
+          const resolveByViteResolver = (
+            id: string,
+            importer: string,
+            isRequire: boolean,
+          ) => {
+            return tryNodeResolve(id, importer, {
+              root: path.dirname(fileName),
+              isBuild: true,
+              isProduction: true,
+              preferRelative: false,
+              tryIndex: true,
+              mainFields: [],
+              conditions: [
+                'node',
+                // ...(isModuleSyncConditionEnabled ? ['module-sync'] : []),
+              ],
+              externalConditions: [],
+              external: [],
+              noExternal: [],
+              dedupe: [],
+              // extensions: configDefaults.resolve.extensions,
+              extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json'],
+              preserveSymlinks: false,
+              packageCache,
+              isRequire,
+              builtins: nodeLikeBuiltins,
+            })?.id
+          }
+
+          // externalize bare imports
+          build.onResolve(
+            { filter: /^[^.#].*/ },
+            async ({ path: id, importer, kind }) => {
+              if (
+                kind === 'entry-point' ||
+                path.isAbsolute(id) ||
+                isNodeBuiltin(id)
+              ) {
+                return
+              }
+
+              // With the `isNodeBuiltin` check above, this check captures if the builtin is a
+              // non-node built-in, which esbuild doesn't know how to handle. In that case, we
+              // externalize it so the non-node runtime handles it instead.
+              if (isNodeLikeBuiltin(id)) {
+                return { external: true }
+              }
+
+              const isImport = isESM || kind === 'dynamic-import'
+              let idFsPath: string | undefined
+              try {
+                idFsPath = resolveByViteResolver(id, importer, !isImport)
+              } catch (e) {
+                if (!isImport) {
+                  let canResolveWithImport = false
+                  try {
+                    canResolveWithImport = !!resolveByViteResolver(
+                      id,
+                      importer,
+                      false,
+                    )
+                  } catch {}
+                  if (canResolveWithImport) {
+                    throw new Error(
+                      `Failed to resolve ${JSON.stringify(
+                        id,
+                      )}. This package is ESM only but it was tried to load by \`require\`. See https://vite.dev/guide/troubleshooting.html#this-package-is-esm-only for more details.`,
+                    )
+                  }
+                }
+                throw e
+              }
+              if (idFsPath && isImport) {
+                idFsPath = pathToFileURL(idFsPath).href
+              }
               return {
+                path: idFsPath,
                 external: true,
               }
+            },
+          )
+        },
+      },
+      {
+        name: 'inject-file-scope-variables',
+        setup(build) {
+          build.onLoad({ filter: /\.[cm]?[jt]s$/ }, async (args) => {
+            const contents = await fsp.readFile(args.path, 'utf-8')
+            const injectValues =
+              `const ${dirnameVarName} = ${JSON.stringify(
+                path.dirname(args.path),
+              )};` +
+              `const ${filenameVarName} = ${JSON.stringify(args.path)};` +
+              `const ${importMetaUrlVarName} = ${JSON.stringify(
+                pathToFileURL(args.path).href,
+              )};`
+
+            return {
+              loader: args.path.endsWith('ts') ? 'ts' : 'js',
+              contents: injectValues + contents,
             }
           })
         },
       },
-      //   {
-      //     name: "replace-import-meta",
-      //     setup(build) {
-      //       build.onLoad({ filter: /\.[jt]s$/ }, async (args) => {
-      //         const contents = await fs.promises.readFile(args.path, "utf8");
-      //         return {
-      //           loader: args.path.endsWith(".ts") ? "ts" : "js",
-      //           contents: contents
-      //             .replace(
-      //               /\bimport\.meta\.url\b/g,
-      //               JSON.stringify(`file://${args.path}`)
-      //             )
-      //             .replace(
-      //               /\b__dirname\b/g,
-      //               JSON.stringify(path.dirname(args.path))
-      //             )
-      //             .replace(/\b__filename\b/g, JSON.stringify(args.path)),
-      //         };
-      //       });
-      //     },
-      //   },
     ],
   })
   const { text } = result.outputFiles[0]
   return {
     code: text,
-    dependencies: result.metafile ? Object.keys(result.metafile.inputs) : [],
+    dependencies: Object.keys(result.metafile.inputs),
   }
 }
 
@@ -646,72 +812,65 @@ interface NodeModuleWithCompile extends NodeModule {
   _compile(code: string, filename: string): any
 }
 
-async function loadConfigFromBundledFile(fileName: string, bundledCode: string): Promise<UserConfig> {
-  const extension = path.extname(fileName)
-  const defaultLoader = require.extensions[extension]!
-  require.extensions[extension] = (module: NodeModule, filename: string) => {
-    if (filename === fileName) {
-      ;(module as NodeModuleWithCompile)._compile(bundledCode, filename)
-    } else {
-      defaultLoader(module, filename)
-    }
-  }
-  // clear cache in case of server restart
-  delete require.cache[require.resolve(fileName)]
-  const raw = require(fileName)
-  const config = raw.__esModule ? raw.default : raw
-  require.extensions[extension] = defaultLoader
-  return config
-}
-
-export function loadEnv(product: string, mode: string, envDir: string, prefix = 'TIBOX_'): Record<string, string> {
-  if (mode === 'local') {
-    throw new Error(
-      `"local" cannot be used as a mode name because it conflicts with ` + `the .local postfix for .env files.`
-    )
-  }
-
-  const env: Record<string, string> = {}
-  const envFiles = [
-    /** with product and mode local file */ `.env.${product}.${mode}.local`,
-    /** with product and mode file */ `.env.${product}.${mode}`,
-    /** product local file */ `.env.${product}.local`,
-    /** product file */ `.env.${product}`,
-    /** local file */ `.env.local`,
-    /** default file */ `.env`,
-  ]
-
-  // check if there are actual env variables starting with TIBOX_*
-  // these are typically provided inline and should be prioritized
-  for (const key in process.env) {
-    if (key.startsWith(prefix) && env[key] === undefined) {
-      env[key] = process.env[key] as string
-    }
-  }
-
-  for (const file of envFiles) {
-    const path = lookupFile(envDir, [file], true)
-    if (path) {
-      const parsed = dotenv.parse(fs.readFileSync(path))
-
-      // let environment variables use each other
-      expand({
-        parsed,
-        // prevent process.env mutation
-        ignoreProcessEnv: true,
-      } as any)
-
-      // only keys that start with prefix are exposed to client
-      for (const [key, value] of Object.entries(parsed)) {
-        if (key.startsWith(prefix) && env[key] === undefined) {
-          env[key] = value
-        } else if (key === 'NODE_ENV') {
-          // NODE_ENV override in .env file
-          process.env.VITE_USER_NODE_ENV = value
+async function loadConfigFromBundledFile(fileName: string, bundledCode: string, isESM: boolean,): Promise<UserConfigExport> {
+  if (isESM) {
+    // Storing the bundled file in node_modules/ is avoided for Deno
+    // because Deno only supports Node.js style modules under node_modules/
+    // and configs with `npm:` import statements will fail when executed.
+    let nodeModulesDir =
+      typeof process.versions.deno === 'string'
+        ? undefined
+        : findNearestNodeModules(path.dirname(fileName))
+    if (nodeModulesDir) {
+      try {
+        await fsp.mkdir(path.resolve(nodeModulesDir, '.tibox-temp/'), {
+          recursive: true,
+        })
+      } catch (e) {
+        if (e.code === 'EACCES') {
+          // If there is no access permission, a temporary configuration file is created by default.
+          nodeModulesDir = undefined
+        } else {
+          throw e
         }
       }
     }
+    const hash = `timestamp-${Date.now()}-${Math.random().toString(16).slice(2)}`
+    const tempFileName = nodeModulesDir
+      ? path.resolve(
+          nodeModulesDir,
+          `.tibox-temp/${path.basename(fileName)}.${hash}.mjs`,
+        )
+      : `${fileName}.${hash}.mjs`
+    await fsp.writeFile(tempFileName, bundledCode)
+    try {
+      return (await import(pathToFileURL(tempFileName).href)).default
+    } finally {
+      fs.unlink(tempFileName, () => {}) // Ignore errors
+    }
+  } else {
+    const _require = createRequire(fileName)
+    const extension = path.extname(fileName)
+    // We don't use fsp.realpath() here because it has the same behaviour as
+    // fs.realpath.native. On some Windows systems, it returns uppercase volume
+    // letters (e.g. "C:\") while the Node.js loader uses lowercase volume letters.
+    // See https://github.com/vitejs/vite/issues/12923
+    const realFileName = await promisifiedRealpath(fileName)
+    const loaderExt = extension in _require.extensions ? extension : '.js'
+    const defaultLoader = _require.extensions[loaderExt]!
+    _require.extensions[loaderExt] = (module: NodeModule, filename: string) => {
+      if (filename === realFileName) {
+        ;(module as NodeModuleWithCompile)._compile(bundledCode, filename)
+      } else {
+        defaultLoader(module, filename)
+      }
+    }
+    // clear cache in case of server restart
+    delete _require.cache[_require.resolve(fileName)]
+    const raw = _require(fileName)
+    createLogger().info(`raw: ${JSON.stringify(raw)}, fileName: ${fileName}`)
+    _require.extensions[loaderExt] = defaultLoader
+    return raw.__esModule ? raw.default : raw
   }
-
-  return env
 }
+

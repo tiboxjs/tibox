@@ -1,15 +1,17 @@
-import { InlineConfig, resolveConfig } from '../config'
-import chokidar from 'chokidar'
-import ora from 'ora'
-import _ from 'lodash'
-import { parse } from '../parse'
-import { cmdCli, traceOutUnuse, ensureDir } from '../utils'
-import path from 'path'
-import { createWriteStream } from 'fs'
-import os from 'os'
+import path from 'node:path'
+import { createWriteStream } from 'node:fs'
+import os from 'node:os'
+import { exec } from 'node:child_process'
 import { debounce } from 'throttle-debounce'
-import { exec } from 'child_process'
+import * as _ from 'lodash-es'
+import ora from 'ora'
+import chokidar from 'chokidar'
 import chalk from 'chalk'
+import { cmdCli, ensureDir, traceOutUnuse } from '../utils'
+import { parse } from '../parse'
+import { resolveConfig } from '../config'
+import type { InlineConfig} from '../config';
+import { createLogger } from '../logger'
 
 export interface DevOptions {
   mock: boolean
@@ -17,7 +19,7 @@ export interface DevOptions {
 
 export type ResolvedDevOptions = Required<Omit<DevOptions, 'base'>>
 
-export type DevOutput = {}
+export type DevOutput = any
 
 /**
  * Bundles the app for production.
@@ -53,6 +55,7 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
   try {
     const config = await resolveConfig(inlineConfig, 'dev', 'default', 'production')
 
+    createLogger(inlineConfig.logLevel).info(`config: ${JSON.stringify(config)}`)
     spinner.text = '处理ext文件'
     // TODO: ext.js的处理，还得优化，暂时让小程序跑起来
     await ensureDir(path.resolve(config.root, config.determinedDestDir, 'ext'))
@@ -114,7 +117,7 @@ async function doDev(inlineConfig: InlineConfig = {}): Promise<DevOutput> {
         }
       )
       .on('all', async (event, filePath) => {
-        // createLogger().info(chalk.grey(`${event}, ${ppath}`));
+        createLogger().info(chalk.grey(`${event}, ${filePath}`));
         await debounceFunction()
       })
       .on('ready', async () => {

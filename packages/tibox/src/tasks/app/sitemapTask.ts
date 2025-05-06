@@ -1,9 +1,10 @@
-import { stat } from 'fs/promises'
-import { createWriteStream, createReadStream } from 'fs'
-import path from 'path'
+import { stat } from 'node:fs/promises'
+import { createReadStream, createWriteStream } from 'node:fs'
+import path from 'node:path'
 import { isFileExist } from '../../utils'
-import { ITaskManager } from '..'
-import { Context, Task } from '../task'
+import type { ITaskManager } from '..'
+import type { Context} from '../task';
+import { Task } from '../task'
 import { isNeedHandle } from '../../watcher'
 
 export class SitemapTask extends Task {
@@ -18,10 +19,10 @@ export class SitemapTask extends Task {
     return path.relative(this.context.config.root, this.filePath)
   }
 
-  public override async onInit(options: ITaskManager): Promise<void> {
+  public override async onInit(_: ITaskManager): Promise<void> {
     //
   }
-  public override onHandle(options: ITaskManager): Promise<void> {
+  public override onHandle(_: ITaskManager): Promise<void> {
     return isFileExist(path.resolve(this.context.config.root, this.filePath)).then(flag => {
       if (flag) {
         return stat(this.absolutePath)

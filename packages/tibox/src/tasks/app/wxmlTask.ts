@@ -1,14 +1,13 @@
-import path from 'path'
-import { stat, access } from 'fs/promises'
-import { createWriteStream, createReadStream } from 'fs'
-import { ensureDir } from '../../utils'
-import { absolute2Relative, matchImportWxmlFile } from '../../utils'
-import { ITaskManager } from '..'
+import path from 'node:path'
+import { access, stat } from 'node:fs/promises'
+import { createReadStream, createWriteStream } from 'node:fs'
+import * as _ from 'lodash-es'
+import chalk from 'chalk'
+import { absolute2Relative, ensureDir, matchImportWxmlFile  } from '../../utils'
+import type { ITaskManager } from '..'
 import { Task } from '../task'
-import _ from 'lodash'
 import { isNeedHandle } from '../../watcher'
 import { createLogger } from '../../logger'
-import chalk from 'chalk'
 
 export class WxmlTask extends Task {
   public id(): string {
@@ -48,7 +47,7 @@ export class WxmlTask extends Task {
     }
   }
 
-  public override async onHandle(options: ITaskManager): Promise<void> {
+  public override async onHandle(_: ITaskManager): Promise<void> {
     const isDependencies = this.context.config.isDependencies
     if (!isDependencies(this.filePath)) {
       try {

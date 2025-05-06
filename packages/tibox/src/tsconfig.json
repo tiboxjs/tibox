@@ -1,6 +1,6 @@
 {
-  "extends": "./tsconfig.base.json",
-  "include": ["src/", "rollup.config.ts", "scripts"],
+  "extends": "../tsconfig.base.json",
+  "include": ["./", "../module-runner", "../types"],
   "exclude": ["**/fixtures"],
   "compilerOptions": {
     // https://github.com/microsoft/TypeScript/wiki/Node-Target-Mapping#node-18
@@ -8,5 +8,8 @@
     "target": "ES2022",
     "skipLibCheck": true, // lib check is done on final types
     "stripInternal": true,
+    "paths": {
+      "vite/module-runner": ["../module-runner"]
+    }
   }
 }
