@@ -1,6 +1,6 @@
 import path from 'node:path'
-// import { createWriteStream } from 'node:fs'
-// import os from 'node:os'
+import { createWriteStream } from 'node:fs'
+import os from 'node:os'
 import * as _ from 'lodash-es'
 import ora from 'ora'
 import type { InlineConfig} from '../config';
@@ -184,6 +184,11 @@ async function doBuild(inlineConfig: InlineConfig = {}): Promise<void> {
   const config = await resolveConfig(inlineConfig, 'build', 'default', 'production')
 
   await ensureDir(path.resolve(config.root, config.determinedDestDir, 'ext'))
+
+  const stream = createWriteStream(path.resolve(config.root, `${config.determinedDestDir}/ext/ext.js`), {
+    flags: 'w',
+  })
+  stream.write(Buffer.from(`module.exports = ${JSON.stringify(config.ext || {}, null, 2)}${os.EOL}`))
 
   const parseResult = await parse(config)
   await parseResult.taskManager.handle(ora())
